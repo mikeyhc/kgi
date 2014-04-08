@@ -33,7 +33,7 @@ void kgi_output(struct kgi *kgi, FILE *stream)
 	assert(kgi != NULL && kgi->data != NULL);
 
 	fprintf(stream, "HTTP/1.0 %s\n", _get_code(kgi->status));
-	fprintf(stream, "Content-length: %d\n", strlen(kgi->data));
+	/*fprintf(stream, "Content-length: %d\n", strlen(kgi->data)); */
 	fprintf(stream, "Content-type: text/html\n\n");
-	fprintf(stream, kgi->data);
+	/* fprintf(stream, kgi->data); */
 }

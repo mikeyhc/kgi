@@ -5,7 +5,7 @@ int main(void){
 	struct kgi k;
 
 	kgi_init(&k);
-	k.data = "<body><h1>hello, world!</h1></body>";
+	kgi_add_data(&k, "<body><h1>hello, world!</h1></body>");
 	kgi_output(&k, stdout);
 	kgi_destroy(&k);
 
