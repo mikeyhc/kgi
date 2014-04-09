@@ -159,10 +159,33 @@ int arraylist_remove(struct arraylist *list, void *ele,
 	int idx;
 
 	idx = arraylist_indexof(list, ele, cmp);
-	if(idx >= 0)
+	if(idx >= 0){
 		list->list[idx] = NULL;
+		list->size--;
+	}
 	return idx >= 0;
-}
+}/* end: arraylist_remove */
+
+/* arraylist_removeat
+ * attempts to remove the item at IDX in LIST and return it
+ *
+ * param list: the list to remove from
+ * param idx: the index to remove at
+ * return: NULL or a pointer
+ */
+void *arraylist_removeat(struct arraylist *list, unsigned idx)
+{
+	void *ele;
+
+	assert(list != NULL);
+
+	if(idx >= list->_pos)
+		return NULL;
+	ele = list->list[idx];
+	if(ele)
+		list->size--;
+	return ele;
+}/* end: arraylist_removeat */
 
 /* _ensure_capacity
  * makes sure LIST is large enough to have an element at IDX, if it isn't

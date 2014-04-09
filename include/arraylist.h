@@ -17,5 +17,6 @@ int arraylist_size(struct arraylist*);
 int arraylist_indexof(struct arraylist*,void*,int(*)(void*,void*));
 int arraylist_contains(struct arraylist*,void*,int(*)(void*,void*));
 int arraylist_remove(struct arraylist*,void*,int(*)(void*,void*));
+void *arraylist_removeat(struct arraylist*,unsigned);
 
 #endif

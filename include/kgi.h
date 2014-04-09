@@ -3,20 +3,23 @@
 
 #include <stdio.h>
 
+#include <arraylist.h>
+
 /* TODO: could use binary trees or hashmaps here for better performance */
 struct kgi {
 	int status;
-	struct arraylist *cookies;
-	struct arraylist *data;
-	struct arraylist *headers;
+	struct arraylist cookies;
+	struct arraylist data;
+	struct arraylist headers;
 };
 
 void kgi_init(struct kgi*);
 void kgi_destroy(struct kgi*);
 
-void kgi_add_cookie(struct kgi*, char*, char*);
+int kgi_add_cookie(struct kgi*, char*, char*);
 void kgi_remove_cookie(struct kgi*, char*);
 void kgi_destroy_cookie(struct kgi*, char*);
+void kgi_clear_cookies(struct kgi*);
 
 void kgi_set_data(struct kgi*, char*);
 void kgi_add_data(struct kgi*, char*);
