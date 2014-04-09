@@ -1,37 +1,60 @@
 CC 	:= gcc
+AR	:= ar -cvq
+MKDIR	:= mkdir -p
+RM	:= rm -rf
+QUIET	:= @
 
 SRCDIR	:= src
 INCDIR	:= include
+OBJDIR	:= obj
+LIBDIR	:= lib
 TSTDIR	:= t
-VPATH	:= $(SRCDIR) $(INCDIR) $(TSTDIR)
+VPATH	:= $(SRCDIR) $(INCDIR)
 
 SOFLAGS		:= -shared
 SHAREDFLAGS	:= -fPIC
-KGILIB		:= -L. -lkgi -Wl,-rpath=$(PWD)
+KGILIB		:= -L$(LIBDIR) -lkgi -Wl,-rpath=$(PWD)/$(LIBDIR)
 
 CPPFLAGS	:= -I$(INCDIR)
 CFLAGS		:= -Wall -Wextra -pedantic
 
-TEST.cgi := ok.cgi
+TEST.c		:= $(shell find $(TSTDIR) -name '*.c')
+TEST.cgi 	:= $(TEST.c:%.c=%.cgi)
+KGIM		:= kgi kgi-cookie kgi-data kgi-header arraylist
+KGIO		:= $(addprefix $(OBJDIR)/,$(addsuffix .o,$(KGIM)))
 
-all: libkgi.so test
+all: libkgi test
 
-libkgi.so: kgi.o kgi-cookie.o kgi-data.o kgi-header.o arraylist.o
+libkgi: $(LIBDIR)/libkgi.so $(LIBDIR)/libkgi.a
+
+$(LIBDIR)/lib%.so: CPPFLAGS += $(SHAREDFLAGS)
+$(LIBDIR)/lib%.so:
+	$(QUIET)$(MKDIR) $(LIBDIR)
 	$(CC) $(CFLAGS) $(SOFLAGS) -o $@ $^
-%.o: CPPFLAGS += $(SHAREDFLAGS)
-kgi.o: kgi.c kgi.h arraylist.h
-kgi-cookie.o: kgi-cookie.c kgi.h arraylist.h
-kgi-data.o: kgi-data.c kgi.h arraylist.h
-kgi-header.o: kgi-header.c kgi.h arraylist.h
-arraylist.o: arraylist.c arraylist.h
+$(LIBDIR)/lib%.a:
+	$(QUIET)$(MKDIR) $(LIBDIR)
+	$(AR) $@ $^
+$(LIBDIR)/libkgi.so: $(KGIO)
+$(LIBDIR)/libkgi.a: $(KGIO)
+
+$(OBJDIR)/%.o: %.c
+	$(QUIET)$(MKDIR) $(OBJDIR)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
+
+$(OBJDIR)/kgi.o: kgi.c kgi.h arraylist.h
+$(OBJDIR)/kgi-cookie.o: kgi-cookie.c kgi.h arraylist.h
+$(OBJDIR)/kgi-data.o: kgi-data.c kgi.h arraylist.h
+$(OBJDIR)/kgi-header.o: kgi-header.c kgi.h arraylist.h
+$(OBJDIR)/arraylist.o: arraylist.c arraylist.h
 
 test: $(TEST.cgi)
 %.cgi: %.c kgi.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(KGILIB) -o $(TSTDIR)/$@ $<
+	$(QUIET)$(MKDIR $(OBJDIR))
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(KGILIB) -o $@ $<
 
 clean: cleantest
-	$(RM) *.o
-	$(RM) *.so
+	$(RM) $(OBJDIR)
+	$(RM) $(LIBDIR)
 
 cleantest:
 	$(RM) $(TSTDIR)/*.cgi
