@@ -25,7 +25,7 @@ void kgi_set_data(struct kgi*, char*);
 void kgi_add_data(struct kgi*, char*);
 void kgi_clear_data(struct kgi*);
 
-void kgi_add_header(struct kgi*, char*, char*);
+int kgi_add_header(struct kgi*, char*, char*);
 void kgi_remove_header(struct kgi*, char*);
 void kgi_clear_headers(struct kgi*);
 
