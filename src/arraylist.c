@@ -17,7 +17,7 @@ static int _ensure_capacity(struct arraylist*,unsigned);
  */
 int arraylist_init(struct arraylist *list)
 {
-	assert(list != NULL && list->list == NULL);
+	assert(list != NULL);
 
 	list->list = calloc(INIT_SIZE, sizeof(*list->list));
 	if(!list->list)

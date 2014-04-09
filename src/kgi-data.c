@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -59,3 +60,43 @@ void kgi_clear_data(struct kgi *kgi)
 		if((ele = arraylist_removeat(&kgi->data, i)))
 			free(ele);
 }/* end: kgi_clear_data */
+
+/* kgi_size_data
+ * returns the size of the data output (useful for content-length)
+ *
+ * param kgi: the kgi to check
+ * return: the amount of data in the structure
+ */
+unsigned kgi_size_data(struct kgi *kgi)
+{
+	int i, j, len;
+	unsigned r;
+	void *e;
+
+	assert(kgi != NULL);
+
+	len = arraylist_size(&kgi->data);
+	for(i=j=r=0; j<len; i++)
+		if((e = arraylist_get(&kgi->data, i)))
+			r += strlen((char*)e), j++;
+	return r;
+}/* end: kgi_size_data */
+
+/* kgi_output_data
+ * prints all the data contained in the kgi to the given stream
+ *
+ * param kgi: the kgi to print from
+ * param stream: the stream to print to
+ */
+void kgi_output_data(struct kgi *kgi, FILE *stream)
+{
+	int i, j, len;
+	void *e;
+
+	assert(kgi != NULL);
+
+	len = arraylist_size(&kgi->data);
+	for(i=j=0; j<len; i++)
+		if((e = arraylist_get(&kgi->data, i)))
+			fprintf(stream, (char*)e), j++;
+}/* end: kgi_output_data */

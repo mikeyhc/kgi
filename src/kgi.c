@@ -1,18 +1,42 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <arraylist.h>
 #include <kgi.h>
 
-static char* _get_code(int code)
+#define CONTENT_TYPE	"Content-type: text/html; charset=iso-8839-1\n"
+#define DEFAULT_PROTO	"HTTP/1.1"
+
+/* get_code
+ * returns the message associated with a particular HTTP code
+ *
+ * param code: the code to fetch
+ * return: the HTTP message (defaults to 200 OK)
+ */
+static char *get_code(unsigned code)
 {
 	switch(code){
 	}
 	return "200 OK";
-}
+}/* end: get_code */
 
+/* get_server_proto
+ * returns the server protocol or defaults to DEFAULT_PROTO
+ *
+ * return: the server protocol or the default
+ */
+char *get_server_proto(void)
+{
+	char *r;
+	return (r = getenv("SERVER_PROTOCOL")) ? r : DEFAULT_PROTO;
+}/* end: get_server_proto */
+
+/* kgi_init
+ * initialize a kgi struct
+ *
+ * param k: the kgi to initialize
+ */
 void kgi_init(struct kgi *k)
 {
 	assert(k != NULL);
@@ -21,8 +45,14 @@ void kgi_init(struct kgi *k)
 	arraylist_init(&k->cookies);
 	arraylist_init(&k->data);
 	arraylist_init(&k->headers);
-}
+}/* end: kgi_init */
 
+/* kgi_destroy
+ * clears and zeros a kgi struct (list components handled externally, may
+ * not be zero'd)
+ *
+ * param k: the kgi to destroy
+ */
 void kgi_destroy(struct kgi *k)
 {
 	assert(k != NULL);
@@ -34,14 +64,22 @@ void kgi_destroy(struct kgi *k)
 	arraylist_destroy(&k->data);
 	kgi_clear_headers(k);
 	arraylist_destroy(&k->headers);
-}
+}/* end: kgi_destroy */
 
+/* kgi_output
+ * outputs the given kgi to the given stream, no error checking performed
+ *
+ * param kgi: the kgi to output
+ * param stream: the stream to output to
+ */
 void kgi_output(struct kgi *kgi, FILE *stream)
 {
 	assert(kgi != NULL);
 
-	fprintf(stream, "HTTP/1.1 %s\n", _get_code(kgi->status));
-	/*fprintf(stream, "Content-length: %d\n", strlen(kgi->data)); */
-	fprintf(stream, "Content-type: text/html\n\n");
-	/* fprintf(stream, kgi->data); */
-}
+	if(kgi->status != 200)
+		fprintf(stream, "%s %s\n\n", get_server_proto(), 
+				get_code(kgi->status)); 
+	fprintf(stream, "Content-Length: %d\n", kgi_size_data(kgi));
+	fprintf(stream, CONTENT_TYPE"\n");
+	kgi_output_data(kgi, stream);
+}/* end: kgi_output */
