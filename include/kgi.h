@@ -21,8 +21,8 @@ void kgi_remove_cookie(struct kgi*, char*);
 int kgi_destroy_cookie(struct kgi*, char*);
 void kgi_clear_cookies(struct kgi*);
 
-void kgi_set_data(struct kgi*, char*);
-void kgi_add_data(struct kgi*, char*);
+int kgi_set_data(struct kgi*, char*);
+int kgi_add_data(struct kgi*, char*);
 void kgi_clear_data(struct kgi*);
 
 int kgi_add_header(struct kgi*, char*, char*);

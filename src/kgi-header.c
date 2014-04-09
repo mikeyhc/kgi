@@ -12,6 +12,7 @@
  * param name: the name of the header
  * param value: the value of the header
  * return: true if added else false
+ *         failure indicates insufficient memory
  */
 int kgi_add_header(struct kgi *kgi, char *name, char *value)
 {
@@ -70,10 +71,12 @@ void kgi_remove_header(struct kgi *kgi, char *name)
 void kgi_clear_headers(struct kgi *kgi)
 {
 	int i, size;
+	void *ele;
 
 	assert(kgi != NULL);
 
 	size = kgi->headers._pos;
 	for(i=0; i<size; i++)
-			arraylist_removeat(&kgi->headers, i);
+		if((ele = arraylist_removeat(&kgi->headers, i)))
+			free(ele);
 }/* end: kgi_clear_headers */

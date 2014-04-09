@@ -15,7 +15,7 @@
  * param name: the name of the cookie
  * param value: the value of the cookie
  * return: true if added else false
- *         failure occurs if there is insufficient memory
+ *         failure indicates insufficient memory
  */
 int kgi_add_cookie(struct kgi *kgi, char *name, char *value)
 {
@@ -99,10 +99,12 @@ int kgi_destroy_cookie(struct kgi *kgi, char *name)
 void kgi_clear_cookies(struct kgi *kgi)
 {
 	int i, size;
+	void *ele;
 
 	assert(kgi != NULL);
 
 	size = kgi->cookies._pos;
 	for(i=0; i<size; i++)
-		arraylist_removeat(&kgi->cookies, i);
+		if((ele = arraylist_removeat(&kgi->cookies, i)))
+			free(ele);
 }/* end: kgi_clear_cookies */
