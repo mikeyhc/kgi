@@ -80,3 +80,22 @@ void kgi_clear_headers(struct kgi *kgi)
 		if((ele = arraylist_removeat(&kgi->headers, i)))
 			free(ele);
 }/* end: kgi_clear_headers */
+
+/* kgi_output_headers
+ * prints all the headers contained in the kgi to the given stream
+ *
+ * param kgi: the kgi to print from
+ * param stream: the stream to print to
+ */
+void kgi_output_headers(struct kgi *kgi, FILE *stream)
+{
+	int i, j, len;
+	void *e;
+	
+	assert(kgi != NULL);
+
+	len = arraylist_size(&kgi->headers);
+	for(i=j=0; j<len; i++)
+		if((e = arraylist_get(&kgi->headers, i)))
+			fprintf(stream, "%s\n", (char*)e), j++;
+}/* end: kgi_output_headers */

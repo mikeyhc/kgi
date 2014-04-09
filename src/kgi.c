@@ -6,7 +6,6 @@
 #include <kgi.h>
 
 #define CONTENT_TYPE	"Content-type: text/html; charset=iso-8839-1\n"
-#define DEFAULT_PROTO	"HTTP/1.1"
 
 /* get_code
  * returns the message associated with a particular HTTP code
@@ -17,20 +16,10 @@
 static char *get_code(unsigned code)
 {
 	switch(code){
+		case 302: return "302 Found";
 	}
 	return "200 OK";
 }/* end: get_code */
-
-/* get_server_proto
- * returns the server protocol or defaults to DEFAULT_PROTO
- *
- * return: the server protocol or the default
- */
-char *get_server_proto(void)
-{
-	char *r;
-	return (r = getenv("SERVER_PROTOCOL")) ? r : DEFAULT_PROTO;
-}/* end: get_server_proto */
 
 /* kgi_init
  * initialize a kgi struct
@@ -66,6 +55,30 @@ void kgi_destroy(struct kgi *k)
 	arraylist_destroy(&k->headers);
 }/* end: kgi_destroy */
 
+/* kgi_set_status
+ * sets the HTTP status code
+ *
+ * param kgi: the kgi to update
+ * param status: the status to set
+ */
+void kgi_set_status(struct kgi *kgi, unsigned status)
+{
+	assert(kgi != NULL);
+	kgi->status = status;
+}/* end: kgi_set_status */
+
+/* kgi_get_status
+ * returns the HTTP status code
+ *
+ * param kgi: the kgi to get the code from
+ * return: the HTTP status code
+ */
+unsigned kgi_get_status(struct kgi *kgi)
+{
+	assert(kgi != NULL);
+	return kgi->status;
+}
+
 /* kgi_output
  * outputs the given kgi to the given stream, no error checking performed
  *
@@ -76,10 +89,9 @@ void kgi_output(struct kgi *kgi, FILE *stream)
 {
 	assert(kgi != NULL);
 
-	if(kgi->status != 200)
-		fprintf(stream, "%s %s\n\n", get_server_proto(), 
-				get_code(kgi->status)); 
-	fprintf(stream, "Content-Length: %d\n", kgi_size_data(kgi));
-	fprintf(stream, CONTENT_TYPE"\n");
+	fprintf(stream, "Status: %s\n", get_code(kgi_get_status(kgi)));
+	fprintf(stream, CONTENT_TYPE);
+	kgi_output_headers(kgi, stream);
+	fprintf(stream, "Content-Length: %d\n\n", kgi_size_data(kgi));
 	kgi_output_data(kgi, stream);
 }/* end: kgi_output */

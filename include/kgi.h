@@ -7,7 +7,7 @@
 
 /* TODO: could use binary trees or hashmaps here for better performance */
 struct kgi {
-	int status;
+	unsigned status;
 	struct arraylist cookies;
 	struct arraylist data;
 	struct arraylist headers;
@@ -15,6 +15,9 @@ struct kgi {
 
 void kgi_init(struct kgi*);
 void kgi_destroy(struct kgi*);
+void kgi_set_status(struct kgi*, unsigned);
+unsigned kgi_get_status(struct kgi*);
+void kgi_output(struct kgi*, FILE*);
 
 int kgi_add_cookie(struct kgi*, char*, char*);
 void kgi_remove_cookie(struct kgi*, char*);
@@ -30,10 +33,6 @@ void kgi_output_data(struct kgi*,FILE*);
 int kgi_add_header(struct kgi*, char*, char*);
 void kgi_remove_header(struct kgi*, char*);
 void kgi_clear_headers(struct kgi*);
-
-void kgi_set_status(struct kgi*, int);
-int kgi_get_status(struct kgi*);
-
-void kgi_output(struct kgi*, FILE*);
+void kgi_output_headers(struct kgi*,FILE*);
 
 #endif
