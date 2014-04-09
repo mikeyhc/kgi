@@ -18,7 +18,7 @@ all: libkgi.so test
 
 libkgi.so: kgi.o kgi-cookie.o kgi-data.o kgi-header.o arraylist.o
 	$(CC) $(CFLAGS) $(SOFLAGS) -o $@ $^
-kgi.o: $(CFLAGS) += $(SHAREDFLAGS)
+%.o: CPPFLAGS += $(SHAREDFLAGS)
 kgi.o: kgi.c kgi.h arraylist.h
 kgi-cookie.o: kgi-cookie.c kgi.h arraylist.h
 kgi-data.o: kgi-data.c kgi.h arraylist.h
@@ -27,7 +27,7 @@ arraylist.o: arraylist.c arraylist.h
 
 test: $(TEST.cgi)
 %.cgi: %.c kgi.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(KGILIB) -o $(TSTDIR)/$@ $^
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(KGILIB) -o $(TSTDIR)/$@ $<
 
 clean: cleantest
 	$(RM) *.o
