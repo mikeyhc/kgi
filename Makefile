@@ -24,6 +24,8 @@ KGIM		:= kgi kgi-cookie kgi-data kgi-header arraylist
 KGIO		:= $(addprefix $(OBJDIR)/,$(addsuffix .o,$(KGIM)))
 
 all: libkgi test
+debug: CC += -g -DDEBUG
+debug: all
 
 libkgi: $(LIBDIR)/libkgi.so $(LIBDIR)/libkgi.a
 
