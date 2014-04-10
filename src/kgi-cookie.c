@@ -42,7 +42,7 @@ int kgi_add_cookie(struct kgi *kgi, char *name, char *value)
  * param str: the pointer to operate on
  * param c: the character to read till
  */
-void read_till(char **str, char c)
+static void read_till(char **str, char c)
 {
 	assert(str != NULL && *str != NULL);
 

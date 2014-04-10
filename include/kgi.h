@@ -19,6 +19,10 @@ void kgi_set_status(struct kgi*, unsigned);
 unsigned kgi_get_status(struct kgi*);
 void kgi_output(struct kgi*,FILE*);
 
+char *kgi_get_param(const char*,char*,unsigned,unsigned*);
+char *kgi_post_param(const char*, char*,unsigned,unsigned*);
+char *kgi_post_boundary_param(const char*,char*,char*,unsigned,unsigned*);
+
 int kgi_add_cookie(struct kgi*, char*, char*);
 char *kgi_get_cookie(char*);
 void kgi_remove_cookie(struct kgi*, char*);
