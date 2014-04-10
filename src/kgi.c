@@ -18,6 +18,7 @@ static char *get_code(unsigned code)
 {
 	switch(code){
 		case 302: return "302 Found";
+		case 404: return "404 Not Found";
 	}
 	return "200 OK";
 }/* end: get_code */
