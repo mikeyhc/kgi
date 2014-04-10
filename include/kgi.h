@@ -20,9 +20,13 @@ unsigned kgi_get_status(struct kgi*);
 void kgi_output(struct kgi*, FILE*);
 
 int kgi_add_cookie(struct kgi*, char*, char*);
+char *kgi_get_cookie(char*);
 void kgi_remove_cookie(struct kgi*, char*);
 int kgi_destroy_cookie(struct kgi*, char*);
 void kgi_clear_cookies(struct kgi*);
+#define kgi_set_message(kgi,msg) kgi_add_cookie(kgi,"FormMessage", msg)
+#define kgi_get_message() kgi_get_cookie("FormMessage")
+#define kgi_clear_message(kgi) kgi_destroy_cookie(kgi, "FormMessage")
 
 int kgi_set_data(struct kgi*, char*);
 int kgi_add_data(struct kgi*, char*);

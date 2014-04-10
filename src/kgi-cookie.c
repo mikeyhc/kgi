@@ -5,8 +5,9 @@
 #include <arraylist.h>
 #include <kgi.h>
 
-#define COOKIE_DESTROY "; Expires=Thu, 01-Jan-1970 00:00:01 GMT;"
-#define CD_LENGTH      strlen(COOKIE_DESTROY)
+#define COOKIE_DESTROY	"; Expires=Thu, 01-Jan-1970 00:00:01 GMT;"
+#define CD_LENGTH	strlen(COOKIE_DESTROY)
+#define BUF_SIZE	256
 
 /* kgi_add_cookie
  * attempts to add a cookie to a kgi reply
@@ -33,6 +34,58 @@ int kgi_add_cookie(struct kgi *kgi, char *name, char *value)
 		free(t);
 	return r;
 }/* end: kgi_add_cookie */
+
+/* read_till
+ * moves the pointer till the character is found and removed or EOF is 
+ * reached
+ *
+ * param str: the pointer to operate on
+ * param c: the character to read till
+ */
+void read_till(char **str, char c)
+{
+	assert(str != NULL && *str != NULL);
+
+	while(**str != '\0' && **str != c)
+		(*str)++;
+	if(**str)
+		(*str)++;
+}/* end: read_till */
+
+/* kgi_get_cookie
+ * attempts to read a cookie from the current environment
+ * TODO: caching
+ *
+ * param name: the name of the cookie
+ * return: the cookie value if found or NULL if not (or memory could not 
+ *         be allocated)
+ */
+char *kgi_get_cookie(char *name)
+{
+	char *cookie, *tmp, *r;
+	int len;
+
+	tmp = getenv("HTTP_COOKIE");
+	if(!tmp)
+		return NULL;
+	while(*tmp){
+		cookie = tmp;
+		read_till(&tmp, '=');
+		if(!strncmp(name, cookie, tmp - cookie -1)){
+			cookie = tmp;
+			read_till(&tmp, ';');
+			len = tmp - cookie - (*(tmp-1)==';' ? 1 : 0);
+			r = malloc(len + 1);
+			if(!r)
+				return NULL;
+			strncpy(r, cookie, len);
+			r[len] = '\0';
+			return r;
+		}
+		read_till(&cookie, ';');
+	}
+	return NULL;
+}/* end: kgi_get_cookie */
 
 static int _count = 0;
 /* check_val
