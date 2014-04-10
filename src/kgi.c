@@ -131,6 +131,8 @@ char *kgi_get_param(const char *key, char *buf, unsigned n, unsigned *len)
 	assert(buf);
 
 	p = getenv("QUERY_STRING");
+	if(!p)
+		return NULL;
 	while(*p){
 		qs = p;
 		read_till(&p, '=');
