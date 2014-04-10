@@ -161,3 +161,22 @@ void kgi_clear_cookies(struct kgi *kgi)
 		if((ele = arraylist_removeat(&kgi->cookies, i)))
 			free(ele);
 }/* end: kgi_clear_cookies */
+
+/* kgi_output_cookies
+ * prints all the cookies contained in the kgi to the give stream
+ *
+ * param kgi: the kgi to print from
+ * param stream: the stream to print to
+ */
+void kgi_output_cookies(struct kgi *kgi, FILE *stream)
+{
+	int i, j, len;
+	void *e;
+
+	assert(kgi != NULL && stream != NULL);
+
+	len = arraylist_size(&kgi->cookies);
+	for(i=j=0; j < len; i++)
+		if((e = arraylist_get(&kgi->cookies, i)))
+			fprintf(stream, "Set-Cookie: %s\n", (char*)e), j++;
+}/* end: kgi_output_cookies */

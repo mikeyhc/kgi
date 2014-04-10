@@ -93,7 +93,7 @@ void kgi_output_data(struct kgi *kgi, FILE *stream)
 	int i, j, len;
 	void *e;
 
-	assert(kgi != NULL);
+	assert(kgi != NULL && stream != NULL);
 
 	len = arraylist_size(&kgi->data);
 	for(i=j=0; j<len; i++)

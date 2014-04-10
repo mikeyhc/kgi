@@ -92,6 +92,7 @@ void kgi_output(struct kgi *kgi, FILE *stream)
 	fprintf(stream, "Status: %s\n", get_code(kgi_get_status(kgi)));
 	fprintf(stream, CONTENT_TYPE);
 	kgi_output_headers(kgi, stream);
+	kgi_output_cookies(kgi, stream);
 	fprintf(stream, "Content-Length: %d\n\n", kgi_size_data(kgi));
 	kgi_output_data(kgi, stream);
 }/* end: kgi_output */

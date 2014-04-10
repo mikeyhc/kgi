@@ -92,7 +92,7 @@ void kgi_output_headers(struct kgi *kgi, FILE *stream)
 	int i, j, len;
 	void *e;
 	
-	assert(kgi != NULL);
+	assert(kgi != NULL && stream != NULL);
 
 	len = arraylist_size(&kgi->headers);
 	for(i=j=0; j<len; i++)
