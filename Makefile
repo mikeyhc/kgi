@@ -20,7 +20,7 @@ CFLAGS		:= -Wall -Wextra -pedantic
 
 TEST.c		:= $(shell find $(TSTDIR) -name '*.c')
 TEST.cgi 	:= $(TEST.c:%.c=%.cgi)
-KGIM		:= kgi kgi-cookie kgi-data kgi-header arraylist
+KGIM		:= kgi kgi-cookie kgi-data kgi-header kgi_html arraylist
 KGIO		:= $(addprefix $(OBJDIR)/,$(addsuffix .o,$(KGIM)))
 
 all: libkgi test
@@ -47,6 +47,7 @@ $(OBJDIR)/kgi.o: kgi.c kgi.h arraylist.h
 $(OBJDIR)/kgi-cookie.o: kgi-cookie.c kgi.h arraylist.h
 $(OBJDIR)/kgi-data.o: kgi-data.c kgi.h arraylist.h
 $(OBJDIR)/kgi-header.o: kgi-header.c kgi.h arraylist.h
+$(OBJDIR)/kgi_html.o: kgi_html.c kgi/html.h arraylist.h
 $(OBJDIR)/arraylist.o: arraylist.c arraylist.h
 
 test: $(TEST.cgi)

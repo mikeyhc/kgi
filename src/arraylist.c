@@ -45,6 +45,23 @@ void arraylist_destroy(struct arraylist *list)
 	list->size = 0;
 }/* end: arraylist_destroy */
 
+/* arraylist_destroy_free
+ * frees all elements in the list then the list itself
+ * NB: does not zero list elements
+ *
+ * param list: the list to destroy
+ */
+void arraylist_destroy_free(struct arraylist *list)
+{
+	unsigned i;
+
+	assert(list != NULL && list->list != NULL);
+	
+	for(i=0; i<list->_pos; i++)
+		if(list->list[i] != NULL)
+			free(list->list[i]);
+	arraylist_destroy(list);
+}/* end: arraylist_destroy_free */
 
 /* arraylist_add
  * attempts to add ELE to LIST
@@ -108,6 +125,18 @@ int arraylist_size(struct arraylist *list)
 	assert(list != NULL);
 	return list->size;
 }/* end: arraylist_size */
+
+/* arraylist_maxidx
+ * returns the highest possible index that might be in use
+ *
+ * param list: the list to return the index from
+ * return: the highest index that might be in use
+ */
+int arraylist_maxidx(struct arraylist *list)
+{
+	assert(list);
+	return list->_pos;
+}/* end: arraylist_maxidx */
 
 /* arrraylist_indexof
  * returns the index of the ELE in LIST using CMP to compare
