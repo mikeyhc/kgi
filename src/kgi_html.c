@@ -44,13 +44,22 @@ void kgi_html_init(struct kgi_html *html, unsigned char t)
  */
 void kgi_html_destroy(struct kgi_html *html)
 {
+	unsigned i, j, l;
+	struct kgi_html *e;
+
 	assert(html);
 
 	html->type = 0;
-	arraylist_destroy_free(&html->hattr);
+	/* need an attribute free method */
+	/* arraylist_destroy_free(&html->hattr); */
 	switch(html->_content_init){
 	case CONTENT_ARRAY:
-		arraylist_destroy_free(&html->content.children);
+		l = arraylist_size(&html->content.children);
+		for(i=j=0; j<l; i++)
+			if((e = (struct kgi_html*)arraylist_get(
+					&html->content.children, i)))
+				kgi_html_destroy(e), j++;
+		arraylist_destroy(&html->content.children);
 		break;
 	case CONTENT_TEXT:
 		free(html->content.text);
@@ -67,7 +76,18 @@ void kgi_html_destroy(struct kgi_html *html)
  */
 static unsigned count_attrs(struct arraylist *attrs)
 {
-	return 0;
+	unsigned i, j, l, count;
+	struct kgi_html_attr *a;
+
+	count = 0;
+	l = arraylist_size(attrs);
+	for(i=j=0; j<l; i++)
+		if((a = (struct kgi_html_attr*)arraylist_get(attrs, i))){
+			/* 4 = "'' =" */
+			count += strlen(a->key) + strlen(a->value) + 4;
+			j++;
+		}
+	return count;
 }/* end: count_attrs */
 
 /* kgi_html_size
@@ -83,12 +103,13 @@ unsigned kgi_html_size(struct kgi_html *html)
 	unsigned i, j, l;
 	void *e;
 
-	count = length[html->type] + 1; /* < */
-	count += (html->type & CAN_CHILD ? count*2 : 0) + 3;
+	count = length[html->type & ~CAN_CHILD] + 1; /* < */
+	count += (html->type & CAN_CHILD ? count : 0) + 3;
 	count += count_attrs(&html->hattr);
 	if(html->_content_init == CONTENT_ARRAY){
 		l = arraylist_size(&html->content.children);
-		for(i=0; j<l; i++)
+		fprintf(stderr, "found children: %d\n", l);
+		for(i=j=0; j<l; i++)
 			if((e = arraylist_get(&html->content.children, 
 					i))){
 				count += kgi_html_size(
@@ -98,6 +119,7 @@ unsigned kgi_html_size(struct kgi_html *html)
 	}else if(html->_content_init == CONTENT_TEXT)
 		count += strlen(html->content.text);
 
+	fprintf(stderr, "count: %d\n", count);
 	return count;
 }/* end: kgi_html_size */
 
