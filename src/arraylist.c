@@ -114,6 +114,24 @@ void *arraylist_get(struct arraylist *list, unsigned idx)
 	return NULL;
 }/* end: arraylist_get */
 
+/* arraylist_find
+ * returns the element that matches ELE using CMP to compare
+ *
+ * param list: the list to search
+ * param ele: the element to match
+ * param cmp: the comparator to use
+ * return: the element if found otherwise NULL
+ */
+void *arraylist_find(struct arraylist *list, void *ele, 
+		int (*cmp)(void*,void*)){
+	int i;
+
+	i = arraylist_indexof(list, ele, cmp);
+	if(i<0)
+		return NULL;
+	return arraylist_get(list, i);
+}/* end: arraylist_find */
+
 /* arraylist_size
  * returns the number of elements in the arraylist
  *
