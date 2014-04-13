@@ -14,7 +14,7 @@
  * return: true if success else false
  *         failure indicates insufficient memory
  */
-int kgi_set_data(struct kgi *kgi, char *data)
+int kgi_set_data(struct kgi *kgi, const char *data)
 {
 	kgi_clear_data(kgi);
 	return kgi_add_data(kgi, data);
@@ -28,7 +28,7 @@ int kgi_set_data(struct kgi *kgi, char *data)
  * return: true if added else false
  *         failure indicates insufficient memory
  */
-int kgi_add_data(struct kgi *kgi, char *data)
+int kgi_add_data(struct kgi *kgi, const char *data)
 {
 	char *t;
 	int r;
