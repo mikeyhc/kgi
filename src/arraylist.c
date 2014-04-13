@@ -122,8 +122,8 @@ void *arraylist_get(struct arraylist *list, unsigned idx)
  * param cmp: the comparator to use
  * return: the element if found otherwise NULL
  */
-void *arraylist_find(struct arraylist *list, void *ele, 
-		int (*cmp)(void*,void*)){
+void *arraylist_find(struct arraylist *list, const void *ele, 
+		int (*cmp)(const void*,const void*)){
 	int i;
 
 	i = arraylist_indexof(list, ele, cmp);
@@ -164,8 +164,8 @@ int arraylist_maxidx(struct arraylist *list)
  * param cmp: the comparator to use
  * return: the index if found else -1
  */
-int arraylist_indexof(struct arraylist *list, void *ele, 
-		int (*cmp)(void*,void*))
+int arraylist_indexof(struct arraylist *list, const void *ele, 
+		int (*cmp)(const void*,const void*))
 {
 	unsigned i;
 	
@@ -186,8 +186,8 @@ int arraylist_indexof(struct arraylist *list, void *ele,
  * param cmp: the comparator to use
  * return: true if the element was found else false
  */
-int arraylist_contains(struct arraylist *list, void *ele,
-		int (*cmp)(void*,void*))
+int arraylist_contains(struct arraylist *list, const void *ele,
+		int (*cmp)(const void*,const void*))
 {
 	return arraylist_indexof(list, ele, cmp) != -1;
 }/* end: arraylist_contains */
@@ -200,8 +200,8 @@ int arraylist_contains(struct arraylist *list, void *ele,
  * param cmp: the comparator to use
  * return: true if removed else false
  */
-int arraylist_remove(struct arraylist *list, void *ele,
-		int (*cmp)(void*,void*))
+int arraylist_remove(struct arraylist *list, const void *ele,
+		int (*cmp)(const void*,const void*))
 {
 	int idx;
 

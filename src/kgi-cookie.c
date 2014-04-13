@@ -95,7 +95,7 @@ static int _count = 0;
  * param b: second value to compare
  * return: <0 if a>b, 0 if a==b, >0 if a<b
  */
-static int check_val(void *a, void *b){
+static int check_val(const void *a, const void *b){
 	return strncmp((char*)a, (char*)b, _count);
 }/* end: check_val */
 

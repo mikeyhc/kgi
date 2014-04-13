@@ -39,7 +39,7 @@ static unsigned _count = 0;
  * param b: second element to compare
  * return: <0 if a>b, 0 if a==b, >0 if a<b
  */
-static int cmp(void *a, void *b){
+static int cmp(const void *a, const void *b){
 	return strncmp((char*)a,(char*)b,_count);
 }/* end: cmp */
 
