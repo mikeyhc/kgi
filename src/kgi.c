@@ -8,6 +8,14 @@
 
 #define CONTENT_TYPE	"Content-type: text/html; charset=iso-8839-1\n"
 
+struct param {
+	char *key;
+	struct arraylist val;
+};
+
+static int post_param_init = 0;
+static struct arraylist post_param;
+
 /* get_code
  * returns the message associated with a particular HTTP code
  *
@@ -114,37 +122,140 @@ static void read_till(char **str, char c)
 		(*str)++;
 }/* end: read_till */
 
+/* param_key_cmp
+ * compares a string to the key value in a param struct
+ *
+ * param param: the param struct to compare against
+ * param key: the key to check for
+ * return: <0 if param->key > key, 0 if equal, >0 if key >
+ */
+int param_key_cmp(const void *param, const void *key)
+{
+	return strcmp(((struct param*)param)->key, key);
+}/* end: postparam_key_cmp */
+
+/* store_query_string
+ * breaks up QUERY and stores it in LIST
+ *
+ * param query: the query string to break up
+ * param list: the list to store it in
+ */
+void store_query_string(char *query, struct arraylist *list)
+{
+	char *key, *val, *tkey, *tval;
+	struct param *param;
+	unsigned long keylen, vallen;
+	int idx;
+
+	/* NB: this need some serious attention */
+	while(*query){
+		key = query;
+		read_till(&query, '=');
+		keylen = query - key;
+		if(*query && *(query+1)){
+			val = ++query;
+			read_till(&query, '&');
+			vallen = query - val;
+			if(vallen && keylen){
+				tkey = malloc(keylen + 1);
+				tval = malloc(vallen + 1);
+				if(!tkey || !tval){
+					if(tkey)
+						free(tkey);
+					return;
+				}
+				strncpy(tkey, key, keylen);
+				tkey[keylen] = '\0';
+				/* check if already have a param struct */
+				if((idx = arraylist_indexof(list, key,
+						param_key_cmp)) < 0){
+					param = malloc(sizeof(*param));
+					if(!param){
+						free(tkey);
+						free(tval);
+						return;
+					}
+					param->key = tkey;
+					arraylist_init(&param->val);
+					arraylist_add(list, param);
+					idx = arraylist_size(list) - 1;
+				}else
+					free(tkey);
+
+				strncpy(tval, val, vallen);
+				tval[vallen] = '\0';
+				arraylist_add((struct arraylist*)
+						&((struct param*)
+						arraylist_get(list, idx))
+						->val, tval);
+			}
+		}
+		
+		/* eat up to and including & or \0 */
+		if(*query){
+			read_till(&query, '&');
+			if(*query)
+				query++;
+		}
+	}
+}/* end: store_query_string */
+
+/* init_postparam
+ * initializes the post_param array
+ */
+void init_postparam(void)
+{
+	char *content, *t;
+	unsigned long len;
+
+	if(post_param_init)
+		return;
+	arraylist_init(&post_param);
+	post_param_init = 1;
+	t = getenv("CONTENT_LENGTH");
+	if(!t)
+		return;
+	content = malloc((len = atoi(t) + 1));
+	if(!content)
+		return;
+	fgets(content, len, stdin);
+	store_query_string(content, &post_param);
+}/* end: init_postparam */
+
 /* kgi_get_param
  * searches the query string for a given key, if found returns the value 
  * in the given array
  *
  * param key: the key to look for
- * param buf: the buffer to store in
- * param n: the length of BUF
- * param len: the number of characters written to BUF
- * return: a pointer to BUF if the key was found otherwise NULL
+ * param list: an uninitialised arraylist to store values in
+ * return: the number of values found
  */
-char *kgi_get_param(const char *key, char *buf, unsigned n, unsigned *len)
+unsigned kgi_get_param(const char *key, struct arraylist *list)
 {
-	char *qs, *p;
+	char *qs, *p, *t;
+	unsigned len;
 
-	assert(buf);
+	assert(key && list);
 
 	p = getenv("QUERY_STRING");
 	if(!p)
-		return NULL;
+		return 0;
+	arraylist_init(list);
 	while(*p){
 		qs = p;
 		read_till(&p, '=');
 		if(*p && *(p+1) && !strncmp(key, qs, p-qs)){
 			qs = ++p;
 			read_till(&p, '&');
-			if(p-qs > n - 1)
-				return NULL;
-			*len = p-qs;
-			strncpy(buf, qs, *len);
-			buf[p-qs] = '\0';
-			return buf;
+			len = p - qs;
+			t = malloc(len + 1);
+			if(!t){
+				arraylist_destroy_free(list);
+				return 0;
+			}
+			strncpy(t, qs, len);
+			t[len] = '\0';
+			arraylist_add(list, t);
 		}
 		
 		/* eat up to and including & or \0 */
@@ -154,7 +265,11 @@ char *kgi_get_param(const char *key, char *buf, unsigned n, unsigned *len)
 				p++;
 		}
 	}
-	return NULL;
+	if(!arraylist_size(list)){
+		arraylist_destroy(list);
+		return 0;
+	}
+	return arraylist_size(list);
 }/* end: kgi_get_param */
 
 /* kgi_post_param
@@ -162,15 +277,24 @@ char *kgi_get_param(const char *key, char *buf, unsigned n, unsigned *len)
  * the given array
  *
  * param key: the key to look for
- * param buf: the buffer to store in
- * param n: the size of BUF
- * param len: the number of characters written to BUF
- * return: a pointer to BUF if the key was found otherwise NULL
+ * param list: an uninitialized arraylist to store the values in
+ * return: the number of values found
  */
-char *kgi_post_param(const char *key, char *buf, unsigned n, unsigned *len)
+unsigned kgi_post_param(const char *key, struct arraylist *list)
 {
-	fprintf(stderr, "%s is a stub\n", __func__);
-	return NULL;
+	unsigned l;
+	void *val;
+
+	assert(key && list);
+
+	init_postparam();
+	val = arraylist_find(&post_param, key, param_key_cmp);
+	if(!val)
+		return 0;
+	arraylist_copy(list, &((struct param*)val)->val);
+	return arraylist_size(list);
+	
+	return 0;
 }/* end: kgi_post_param */
 
 /* kgi_post_boundary_param
@@ -179,15 +303,13 @@ char *kgi_post_param(const char *key, char *buf, unsigned n, unsigned *len)
  * given buffer
  *
  * param key: the key to look for
- * param buf: the buffer to store in
  * param bound: the boundary string to use
- * param n: the size of BUF
- * param len: the number of characters written to BUF
- * return: a point to BUF if the key was found otherwise NULL
+ * param list: au uninitialised arraylist to store the values in
+ * return: the number of values found
  */
-char *kgi_post_boundary_param(const char *key, char *buf, char *bound, 
-		unsigned n, unsigned *len)
+unsigned kgi_post_boundary_param(const char *key, const char *bound, 
+		struct arraylist *list)
 {
 	fprintf(stderr, "%s is a stub\n", __func__);
-	return NULL;
+	return 0;
 }/* end: kgi_post_boundary_param */
