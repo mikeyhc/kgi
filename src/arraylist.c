@@ -279,4 +279,5 @@ int arraylist_copy(struct arraylist *a, struct arraylist *b)
 	a->_pos = b->_pos;
 	a->size = b->size;
 	memcpy(a->list, b->list, b->_array_size * sizeof(*t));
+	return 1;
 }/* end: arraylist_copy */

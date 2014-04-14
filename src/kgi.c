@@ -290,7 +290,7 @@ unsigned kgi_post_param(const char *key, struct arraylist *list)
  *
  * param key: the key to look for
  * param bound: the boundary string to use
- * param list: au uninitialised arraylist to store the values in
+ * param list: an uninitialised arraylist to store the values in
  * return: the number of values found
  */
 unsigned kgi_post_boundary_param(const char *key, const char *bound, 
@@ -299,3 +299,26 @@ unsigned kgi_post_boundary_param(const char *key, const char *bound,
 	fprintf(stderr, "%s is a stub\n", __func__);
 	return 0;
 }/* end: kgi_post_boundary_param */
+
+/* kgi_get_param_keys
+ * returns a list of all the keys found in the GET string
+ *
+ * param list: an uninitialised arraylist to store the values in
+ * return: the number of keys
+ */
+unsigned kgi_get_param_keys(struct arraylist *list)
+{
+	unsigned len, i, j;
+	void *e;
+
+	assert(list);
+
+	init_getparam();
+	arraylist_init(list);
+	
+	len = arraylist_size(&get_param);
+	for(i=j=0; j<len; i++)
+		if((e = arraylist_get(&get_param, i)))
+			arraylist_add(list, ((struct param*)e)->key), j++;
+	return arraylist_size(list);
+}/* end: kgi_get_param_keys */

@@ -21,7 +21,9 @@ void kgi_output(struct kgi*,FILE*);
 
 unsigned kgi_get_param(const char*,struct arraylist*);
 unsigned kgi_post_param(const char*,struct arraylist*);
-unsigned kgi_post_boundary_param(const char*,const char*,struct arraylist*);
+unsigned kgi_post_boundary_param(const char*,const char*,
+		struct arraylist*);
+unsigned kgi_get_param_keys(struct arraylist*);
 
 int kgi_add_cookie(struct kgi*, char*, char*);
 char *kgi_get_cookie(char*);
