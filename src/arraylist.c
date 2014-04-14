@@ -260,8 +260,8 @@ static int _ensure_capacity(struct arraylist *list, unsigned idx)
  * attempts to copy A to B, will override B so make sure its empty if you 
  * dont like memory leaks
  *
- * param a: the list to copy from
- * param b: the list to copy to
+ * param a: the list to copy to
+ * param b: the list to copy from
  * return: 1 on success else 0
  *         failure indicates insufficient memory
  */
@@ -271,12 +271,12 @@ int arraylist_copy(struct arraylist *a, struct arraylist *b)
 
 	assert(a && b);
 
-	t = malloc(sizeof(*t)*a->_array_size);
+	t = malloc(sizeof(*t)*b->_array_size);
 	if(!t)
 		return 0;
-	b->list = t;
-	b->_array_size = a->_array_size;
-	b->_pos = a->_pos;
-	b->size = a->size;
-	memcpy(b->list, a->list, a->_array_size * sizeof(*t));
+	a->list = t;
+	a->_array_size = b->_array_size;
+	a->_pos = b->_pos;
+	a->size = b->size;
+	memcpy(a->list, b->list, b->_array_size * sizeof(*t));
 }/* end: arraylist_copy */

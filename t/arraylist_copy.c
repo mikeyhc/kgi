@@ -9,10 +9,10 @@ int main(void)
 	struct arraylist a, b;
 	char buf[32];
 
-	arraylist_init(&a);
-	arraylist_add(&a, (void*)1);
-	arraylist_add(&a, (void*)2);
-	arraylist_add(&a, (void*)3);
+	arraylist_init(&b);
+	arraylist_add(&b, (void*)1);
+	arraylist_add(&b, (void*)2);
+	arraylist_add(&b, (void*)3);
 	arraylist_copy(&a, &b);
 
 	kgi_init(&k);
