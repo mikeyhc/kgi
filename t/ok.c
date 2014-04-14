@@ -1,7 +1,8 @@
 #include <kgi.h>
 #include <stdio.h>
 
-int main(void){
+int main(void)
+{
 	struct kgi k;
 
 	kgi_init(&k);
