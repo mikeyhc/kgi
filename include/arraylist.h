@@ -25,5 +25,6 @@ int arraylist_contains(struct arraylist*,const void*,
 int arraylist_remove(struct arraylist*,const void*,
 		int(*)(const void*,const void*));
 void *arraylist_removeat(struct arraylist*,unsigned);
+int arraylist_copy(struct arraylist*,struct arraylist*);
 
 #endif
