@@ -13,8 +13,10 @@ struct param {
 	struct arraylist val;
 };
 
+static int get_param_init  = 0;
 static int post_param_init = 0;
 static struct arraylist post_param;
+static struct arraylist get_param;
 
 /* get_code
  * returns the message associated with a particular HTTP code
@@ -200,6 +202,21 @@ void store_query_string(char *query, struct arraylist *list)
 	}
 }/* end: store_query_string */
 
+/* init_getparam
+ * initializes the get_param array
+ */
+void init_getparam(void)
+{
+	char *qs;
+
+	if(get_param_init)
+		return;
+	arraylist_init(&get_param);
+	get_param_init = 1;
+	if((qs = getenv("QUERY_STRING")))
+		store_query_string(qs, &get_param);
+}/* end: init_getparam */
+
 /* init_postparam
  * initializes the post_param array
  */
@@ -232,43 +249,15 @@ void init_postparam(void)
  */
 unsigned kgi_get_param(const char *key, struct arraylist *list)
 {
-	char *qs, *p, *t;
-	unsigned len;
+	void *val;
 
 	assert(key && list);
 
-	p = getenv("QUERY_STRING");
-	if(!p)
+	init_getparam();
+	val = arraylist_find(&get_param, key , param_key_cmp);
+	if(!val)
 		return 0;
-	arraylist_init(list);
-	while(*p){
-		qs = p;
-		read_till(&p, '=');
-		if(*p && *(p+1) && !strncmp(key, qs, p-qs)){
-			qs = ++p;
-			read_till(&p, '&');
-			len = p - qs;
-			t = malloc(len + 1);
-			if(!t){
-				arraylist_destroy_free(list);
-				return 0;
-			}
-			strncpy(t, qs, len);
-			t[len] = '\0';
-			arraylist_add(list, t);
-		}
-		
-		/* eat up to and including & or \0 */
-		if(*p){
-			read_till(&p, '&');
-			if(*p)
-				p++;
-		}
-	}
-	if(!arraylist_size(list)){
-		arraylist_destroy(list);
-		return 0;
-	}
+	arraylist_copy(list, &((struct param*)val)->val);
 	return arraylist_size(list);
 }/* end: kgi_get_param */
 
@@ -282,7 +271,6 @@ unsigned kgi_get_param(const char *key, struct arraylist *list)
  */
 unsigned kgi_post_param(const char *key, struct arraylist *list)
 {
-	unsigned l;
 	void *val;
 
 	assert(key && list);
@@ -293,8 +281,6 @@ unsigned kgi_post_param(const char *key, struct arraylist *list)
 		return 0;
 	arraylist_copy(list, &((struct param*)val)->val);
 	return arraylist_size(list);
-	
-	return 0;
 }/* end: kgi_post_param */
 
 /* kgi_post_boundary_param
