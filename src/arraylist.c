@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>	/* memset */
 
@@ -6,7 +7,7 @@
 
 #define INIT_SIZE 10
 
-static int _ensure_capacity(struct arraylist*,unsigned);
+static uint8_t _ensure_capacity(struct arraylist*,unsigned);
 
 /* arraylist_init
  * initializes and arraylist structure
@@ -15,9 +16,9 @@ static int _ensure_capacity(struct arraylist*,unsigned);
  * return: 1 if initialized else 0
  *         failure indicates insufficient memory
  */
-int arraylist_init(struct arraylist *list)
+uint8_t arraylist_init(struct arraylist *list)
 {
-	assert(list != NULL);
+	assert(list);
 
 	list->list = calloc(INIT_SIZE, sizeof(*list->list));
 	if(!list->list)
@@ -37,7 +38,7 @@ int arraylist_init(struct arraylist *list)
  */
 void arraylist_destroy(struct arraylist *list)
 {
-	assert(list != NULL && list->list != NULL);
+	assert(list && list->list);
 
 	free(list->list);
 	list->_array_size = 0;
@@ -55,7 +56,7 @@ void arraylist_destroy_free(struct arraylist *list)
 {
 	unsigned i;
 
-	assert(list != NULL && list->list != NULL);
+	assert(list && list->list);
 	
 	for(i=0; i<list->_pos; i++)
 		if(list->list[i] != NULL)
@@ -71,9 +72,9 @@ void arraylist_destroy_free(struct arraylist *list)
  * return: 1 if it was added else 0 
  *         failure indicates insufficient memory
  */
-int arraylist_add(struct arraylist *list, void *ele)
+uint8_t arraylist_add(struct arraylist *list, void *ele)
 {
-	assert(list != NULL);
+	assert(list);
 
 	return arraylist_set(list, list->_pos, ele);
 }/* end: arraylist_add */
@@ -87,9 +88,9 @@ int arraylist_add(struct arraylist *list, void *ele)
  * return: 1 to add else 0
  *         failure indicates insufficient memory
  */
-int arraylist_set(struct arraylist *list, unsigned idx, void *ele)
+uint8_t arraylist_set(struct arraylist *list, unsigned long idx, void *ele)
 {
-	assert(list != NULL && list->list != NULL && ele != NULL);
+	assert(list && list->list && ele);
 
 	if(!_ensure_capacity(list, idx))
 		return 0;
@@ -106,9 +107,9 @@ int arraylist_set(struct arraylist *list, unsigned idx, void *ele)
  * param idx: the index to fetch from
  * return: either the element or NULL if there was none
  */
-void *arraylist_get(struct arraylist *list, unsigned idx)
+void *arraylist_get(struct arraylist *list, unsigned long idx)
 {
-	assert(list != NULL && list->list != NULL);
+	assert(list && list->list);
 	if(idx < list->_array_size)
 		return list->list[idx];
 	return NULL;
@@ -124,7 +125,7 @@ void *arraylist_get(struct arraylist *list, unsigned idx)
  */
 void *arraylist_find(struct arraylist *list, const void *ele, 
 		int (*cmp)(const void*,const void*)){
-	int i;
+	long i;
 
 	i = arraylist_indexof(list, ele, cmp);
 	if(i<0)
@@ -138,9 +139,9 @@ void *arraylist_find(struct arraylist *list, const void *ele,
  * param list: the list to return the size of
  * return: the size of the list
  */
-int arraylist_size(struct arraylist *list)
+unsigned long arraylist_size(struct arraylist *list)
 {
-	assert(list != NULL);
+	assert(list);
 	return list->size;
 }/* end: arraylist_size */
 
@@ -150,7 +151,7 @@ int arraylist_size(struct arraylist *list)
  * param list: the list to return the index from
  * return: the highest index that might be in use
  */
-int arraylist_maxidx(struct arraylist *list)
+size_t arraylist_maxidx(struct arraylist *list)
 {
 	assert(list);
 	return list->_pos;
@@ -164,13 +165,12 @@ int arraylist_maxidx(struct arraylist *list)
  * param cmp: the comparator to use
  * return: the index if found else -1
  */
-int arraylist_indexof(struct arraylist *list, const void *ele, 
+long arraylist_indexof(struct arraylist *list, const void *ele, 
 		int (*cmp)(const void*,const void*))
 {
 	unsigned i;
 	
-	assert(list != NULL && list->list != NULL);
-	assert(ele != NULL && cmp != NULL);
+	assert(list && list->list && ele && cmp);
 
 	for(i = 0; i < list->_pos; i++)
 		if(!cmp(list->list[i],ele))
@@ -186,7 +186,7 @@ int arraylist_indexof(struct arraylist *list, const void *ele,
  * param cmp: the comparator to use
  * return: true if the element was found else false
  */
-int arraylist_contains(struct arraylist *list, const void *ele,
+uint8_t arraylist_contains(struct arraylist *list, const void *ele,
 		int (*cmp)(const void*,const void*))
 {
 	return arraylist_indexof(list, ele, cmp) != -1;
@@ -200,16 +200,14 @@ int arraylist_contains(struct arraylist *list, const void *ele,
  * param cmp: the comparator to use
  * return: true if removed else false
  */
-int arraylist_remove(struct arraylist *list, const void *ele,
+uint8_t arraylist_remove(struct arraylist *list, const void *ele,
 		int (*cmp)(const void*,const void*))
 {
 	int idx;
 
 	idx = arraylist_indexof(list, ele, cmp);
-	if(idx >= 0){
-		list->list[idx] = NULL;
-		list->size--;
-	}
+	if(idx >= 0)
+		arraylist_removeat(list, idx);
 	return idx >= 0;
 }/* end: arraylist_remove */
 
@@ -224,13 +222,15 @@ void *arraylist_removeat(struct arraylist *list, unsigned idx)
 {
 	void *ele;
 
-	assert(list != NULL);
+	assert(list);
 
 	if(idx >= list->_pos)
 		return NULL;
 	ele = list->list[idx];
-	if(ele)
+	if(ele){
+		list->list[idx] = NULL;
 		list->size--;
+	}
 	return ele;
 }/* end: arraylist_removeat */
 
@@ -243,7 +243,7 @@ void *arraylist_removeat(struct arraylist *list, unsigned idx)
  * return: 1 if the list was large enough or was successfully resized else 0
  *         failure indicates insufficient memory
  */
-static int _ensure_capacity(struct arraylist *list, unsigned idx)
+static uint8_t _ensure_capacity(struct arraylist *list, unsigned idx)
 {
 	if(idx < list->_array_size)
 		return 1;
@@ -265,7 +265,7 @@ static int _ensure_capacity(struct arraylist *list, unsigned idx)
  * return: 1 on success else 0
  *         failure indicates insufficient memory
  */
-int arraylist_copy(struct arraylist *a, struct arraylist *b)
+uint8_t arraylist_copy(struct arraylist *a, struct arraylist *b)
 {
 	void **t;
 
