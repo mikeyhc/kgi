@@ -25,9 +25,9 @@ size_t kgi_param(const char*,struct arraylist*);
 size_t kgi_param_keys(struct arraylist*);
 
 uint8_t kgi_add_cookie(struct kgi*, const char*, const char*);
-char *kgi_get_cookie(char*);
-void kgi_remove_cookie(struct kgi*, char*);
-int kgi_destroy_cookie(struct kgi*, char*);
+const char *kgi_get_cookie(const char*);
+void kgi_remove_cookie(struct kgi*, const char*);
+uint8_t kgi_destroy_cookie(struct kgi*, const char*);
 void kgi_clear_cookies(struct kgi*);
 void kgi_output_cookies(struct kgi*,FILE*);
 #define kgi_set_message(kgi,msg) kgi_add_cookie(kgi,"FormMessage", msg)

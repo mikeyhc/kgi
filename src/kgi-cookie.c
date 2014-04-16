@@ -1,9 +1,10 @@
+#include <arraylist.h>
 #include <assert.h>
+#include <kgi.h>
+#include <kstring.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <arraylist.h>
-#include <kgi.h>
 
 #define COOKIE_DESTROY	"; Expires=Thu, 01-Jan-1970 00:00:01 GMT;"
 #define CD_LENGTH	strlen(COOKIE_DESTROY)
@@ -18,20 +19,26 @@
  * return: true if added else false
  *         failure indicates insufficient memory
  */
-int kgi_add_cookie(struct kgi *kgi, char *name, char *value)
+uint8_t kgi_add_cookie(struct kgi *kgi, const char *name, const char *value)
 {
 	int r;
-	char *t;
+	size_t len;
+	char *t, *k;
 
-	assert(kgi != NULL && name != NULL && value != NULL);
+	assert(kgi && name && value);
 
-	t = malloc(strlen(name) + strlen(value) + 2); /* 2 =\0 */
+	len = kstrlen(name) + kstrlen(value) + 1; /* +1 for = */
+	t = malloc(len + 1);
 	if(!t)
 		return 0;
 	sprintf(t, "%s=%s", name, value);
-	r = arraylist_add(&kgi->cookies, t);
+	k = (char*)kstring_newl(t, len);
+	free(t);
+	if(!k)
+		return 0;
+	r = arraylist_add(&kgi->cookies, k);
 	if(!r)
-		free(t);
+		free(k);
 	return r;
 }/* end: kgi_add_cookie */
 
@@ -60,11 +67,15 @@ static void read_till(char **str, char c)
  * return: the cookie value if found or NULL if not (or memory could not 
  *         be allocated)
  */
-char *kgi_get_cookie(char *name)
+const char *kgi_get_cookie(const char *name)
 {
-	char *cookie, *tmp, *r;
+	char *cookie, *tmp;
+	const char *r;
 	int len;
 
+	assert(name);
+
+	/* TODO: lazy read with caching */
 	tmp = getenv("HTTP_COOKIE");
 	if(!tmp)
 		return NULL;
@@ -75,11 +86,9 @@ char *kgi_get_cookie(char *name)
 			cookie = tmp;
 			read_till(&tmp, ';');
 			len = tmp - cookie - (*(tmp-1)==';' ? 1 : 0);
-			r = malloc(len + 1);
+			r = kstring_newl(cookie, len);
 			if(!r)
 				return NULL;
-			strncpy(r, cookie, len);
-			r[len] = '\0';
 			return r;
 		}
 		read_till(&cookie, ';');
@@ -105,17 +114,17 @@ static int check_val(const void *a, const void *b){
  * param kgi: the kgi to update
  * param name: the name of the cookie
  */
-void kgi_remove_cookie(struct kgi *kgi, char *name)
+void kgi_remove_cookie(struct kgi *kgi, const char *name)
 {
 	int idx;
 	
-	assert(kgi != NULL && name != NULL);
+	assert(kgi && name);
 
 	_count = strlen(name);
 	idx = arraylist_indexof(&kgi->cookies, name, check_val); 
 	if(idx < 0)
 		return;
-	free(arraylist_get(&kgi->cookies, idx));
+	kstring_destroy(arraylist_get(&kgi->cookies, idx));
 	arraylist_removeat(&kgi->cookies, idx);
 }/* end: kgi_remove_cookie */
 
@@ -127,20 +136,26 @@ void kgi_remove_cookie(struct kgi *kgi, char *name)
  * param name: the name of the cookie
  * return: true if set otherwise false
  */
-int kgi_destroy_cookie(struct kgi *kgi, char *name)
+uint8_t kgi_destroy_cookie(struct kgi *kgi, const char *name)
 {
-	char *t;
+	char *t, *k;
+	size_t len;
 	int r;
 
-	assert(kgi != NULL && name != NULL);
+	assert(kgi && name);
 	
-	t = malloc(strlen(name) + CD_LENGTH + 2); /* 2 =\0 */
+	len = kstrlen(name) + CD_LENGTH + 1; /* +1 for = */
+	t = malloc(len + 1); 
 	if(!t)
 		return 0;
 	sprintf(t, "%s=;"COOKIE_DESTROY, name);
+	k = (char*)kstring_newl(t, len);
+	free(t);
+	if(!k)
+		return 0;
 	r = arraylist_add(&kgi->cookies, t);
 	if(!r)
-		free(t);
+		free(k);
 	return r;
 }/* end: kgi_destroy_cookie */
 
@@ -154,12 +169,12 @@ void kgi_clear_cookies(struct kgi *kgi)
 	int i, size;
 	void *ele;
 
-	assert(kgi != NULL);
+	assert(kgi);
 
 	size = kgi->cookies._pos;
 	for(i=0; i<size; i++)
 		if((ele = arraylist_removeat(&kgi->cookies, i)))
-			free(ele);
+			kstring_destroy(ele);
 }/* end: kgi_clear_cookies */
 
 /* kgi_output_cookies
@@ -173,7 +188,7 @@ void kgi_output_cookies(struct kgi *kgi, FILE *stream)
 	int i, j, len;
 	void *e;
 
-	assert(kgi != NULL && stream != NULL);
+	assert(kgi && stream);
 
 	len = arraylist_size(&kgi->cookies);
 	for(i=j=0; j < len; i++)
