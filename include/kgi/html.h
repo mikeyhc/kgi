@@ -29,7 +29,7 @@ struct kgi_html_attr {
 struct kgi_html {
 	union {
 		struct arraylist children;
-		char *text;
+		const char *text;
 	} content;
 	struct arraylist hattr;
 	html_type type;

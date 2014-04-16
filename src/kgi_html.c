@@ -59,15 +59,10 @@ void kgi_html_destroy(struct kgi_html *html)
 	/* arraylist_destroy_free(&html->hattr); */
 	switch(html->_content_init){
 	case CONTENT_ARRAY:
-		l = arraylist_size(&html->content.children);
-		for(i=j=0; j<l; i++)
-			if((e = (struct kgi_html*)arraylist_get(
-					&html->content.children, i)))
-				kgi_html_destroy(e), j++;
-		arraylist_destroy(&html->content.children);
+		kgi_html_clear_children(html);
 		break;
 	case CONTENT_TEXT:
-		free(html->content.text);
+		kgi_html_clear_text(html);
 		break;
 	}
 	html->_content_init = CONTENT_UNINIT;
@@ -89,7 +84,7 @@ static unsigned count_attrs(struct arraylist *attrs)
 	for(i=j=0; j<l; i++)
 		if((a = (struct kgi_html_attr*)arraylist_get(attrs, i))){
 			/* 4 = "'' =" */
-			count += strlen(a->key) + strlen(a->value) + 4;
+			count += kstrlen(a->key) + kstrlen(a->value) + 4;
 			j++;
 		}
 	return count;
@@ -122,7 +117,7 @@ unsigned kgi_html_size(struct kgi_html *html)
 				j++;
 			}
 	}else if(html->_content_init == CONTENT_TEXT)
-		count += strlen(html->content.text);
+		count += kstrlen(html->content.text);
 
 	fprintf(stderr, "count: %d\n", count);
 	return count;
@@ -151,6 +146,12 @@ uint8_t kgi_html_set_text(struct kgi_html *html, const char *str)
 {
 	assert(html && html->_content_init != CONTENT_ARRAY && str);
 
+	if(html->_content_init == CONTENT_TEXT)
+		kgi_html_clear_text(html);
+	html->content.text = kstring_new(str);
+	if(!html->content.text)
+		return 0;
+	html->_content_init = CONTENT_TEXT;
 	return 0;
 }/* end: kgi_html_set_text */
 
