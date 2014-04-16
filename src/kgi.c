@@ -1,10 +1,11 @@
+#include <arraylist.h>
 #include <assert.h>
+#include <kgi.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <arraylist.h>
-#include <kgi.h>
 
 #define CONTENT_TYPE	"Content-type: text/html; charset=iso-8839-1\n"
 
@@ -13,10 +14,8 @@ struct param {
 	struct arraylist val;
 };
 
-static int get_param_init  = 0;
-static int post_param_init = 0;
-static struct arraylist post_param;
-static struct arraylist get_param;
+static uint8_t param_init  = 0;
+static struct arraylist params;
 
 /* get_code
  * returns the message associated with a particular HTTP code
@@ -40,7 +39,7 @@ static char *get_code(unsigned code)
  */
 void kgi_init(struct kgi *k)
 {
-	assert(k != NULL);
+	assert(k);
 
 	k->status = 200;
 	arraylist_init(&k->cookies);
@@ -56,7 +55,7 @@ void kgi_init(struct kgi *k)
  */
 void kgi_destroy(struct kgi *k)
 {
-	assert(k != NULL);
+	assert(k);
 
 	k->status = 0;
 	kgi_clear_cookies(k);
@@ -75,7 +74,7 @@ void kgi_destroy(struct kgi *k)
  */
 void kgi_set_status(struct kgi *kgi, unsigned status)
 {
-	assert(kgi != NULL);
+	assert(kgi);
 	kgi->status = status;
 }/* end: kgi_set_status */
 
@@ -87,7 +86,7 @@ void kgi_set_status(struct kgi *kgi, unsigned status)
  */
 unsigned kgi_get_status(struct kgi *kgi)
 {
-	assert(kgi != NULL);
+	assert(kgi);
 	return kgi->status;
 }
 
@@ -99,7 +98,7 @@ unsigned kgi_get_status(struct kgi *kgi)
  */
 void kgi_output(struct kgi *kgi, FILE *stream)
 {
-	assert(kgi != NULL);
+	assert(kgi);
 
 	fprintf(stream, "Status: %s\n", get_code(kgi_get_status(kgi)));
 	fprintf(stream, CONTENT_TYPE);
@@ -162,8 +161,8 @@ void store_query_string(char *query, struct arraylist *list)
 				tkey = malloc(keylen + 1);
 				tval = malloc(vallen + 1);
 				if(!tkey || !tval){
-					if(tkey)
-						free(tkey);
+					if(tkey) free(tkey);
+					if(tval) free(tval);
 					return;
 				}
 				strncpy(tkey, key, keylen);
@@ -202,42 +201,30 @@ void store_query_string(char *query, struct arraylist *list)
 	}
 }/* end: store_query_string */
 
-/* init_getparam
- * initializes the get_param array
+/* init_params
+ * initializes the params array
  */
-void init_getparam(void)
+void init_params(void)
 {
 	char *qs;
-
-	if(get_param_init)
-		return;
-	arraylist_init(&get_param);
-	get_param_init = 1;
-	if((qs = getenv("QUERY_STRING")))
-		store_query_string(qs, &get_param);
-}/* end: init_getparam */
-
-/* init_postparam
- * initializes the post_param array
- */
-void init_postparam(void)
-{
 	char *content, *t;
 	unsigned long len;
 
-	if(post_param_init)
+	if(param_init)
 		return;
-	arraylist_init(&post_param);
-	post_param_init = 1;
-	t = getenv("CONTENT_LENGTH");
-	if(!t)
-		return;
-	content = malloc((len = atoi(t) + 1));
-	if(!content)
-		return;
-	fgets(content, len, stdin);
-	store_query_string(content, &post_param);
-}/* end: init_postparam */
+	arraylist_init(&params);
+	param_init = 1;
+	if((qs = getenv("QUERY_STRING")))
+		store_query_string(qs, &params);
+	if((t = getenv("CONTENT_LENGTH"))){
+		content = malloc((len = atoi(t) + 1));
+		if(content){
+			fgets(content, len, stdin);
+			store_query_string(content, &params);
+		}
+	}
+}/* end: init_params */
+
 
 /* kgi_get_param
  * searches the query string for a given key, if found returns the value 
@@ -247,58 +234,19 @@ void init_postparam(void)
  * param list: an uninitialised arraylist to store values in
  * return: the number of values found
  */
-unsigned kgi_get_param(const char *key, struct arraylist *list)
+size_t kgi_param(const char *key, struct arraylist *list)
 {
 	void *val;
 
 	assert(key && list);
 
-	init_getparam();
-	val = arraylist_find(&get_param, key , param_key_cmp);
+	init_params();
+	val = arraylist_find(&params, key , param_key_cmp);
 	if(!val)
 		return 0;
 	arraylist_copy(list, &((struct param*)val)->val);
 	return arraylist_size(list);
-}/* end: kgi_get_param */
-
-/* kgi_post_param
- * searches through stdin for a given key, if found returns the value in
- * the given array
- *
- * param key: the key to look for
- * param list: an uninitialized arraylist to store the values in
- * return: the number of values found
- */
-unsigned kgi_post_param(const char *key, struct arraylist *list)
-{
-	void *val;
-
-	assert(key && list);
-
-	init_postparam();
-	val = arraylist_find(&post_param, key, param_key_cmp);
-	if(!val)
-		return 0;
-	arraylist_copy(list, &((struct param*)val)->val);
-	return arraylist_size(list);
-}/* end: kgi_post_param */
-
-/* kgi_post_boundary_param
- * searchs through stdin using the given boundary to delimit values and 
- * keys, if the key is found then the matched value is returned in the 
- * given buffer
- *
- * param key: the key to look for
- * param bound: the boundary string to use
- * param list: an uninitialised arraylist to store the values in
- * return: the number of values found
- */
-unsigned kgi_post_boundary_param(const char *key, const char *bound, 
-		struct arraylist *list)
-{
-	fprintf(stderr, "%s is a stub\n", __func__);
-	return 0;
-}/* end: kgi_post_boundary_param */
+}/* end: kgi_param */
 
 /* kgi_get_param_keys
  * returns a list of all the keys found in the GET string
@@ -306,19 +254,19 @@ unsigned kgi_post_boundary_param(const char *key, const char *bound,
  * param list: an uninitialised arraylist to store the values in
  * return: the number of keys
  */
-unsigned kgi_get_param_keys(struct arraylist *list)
+size_t kgi_get_param_keys(struct arraylist *list)
 {
 	unsigned len, i, j;
 	void *e;
 
 	assert(list);
 
-	init_getparam();
+	init_params();
 	arraylist_init(list);
 	
-	len = arraylist_size(&get_param);
+	len = arraylist_size(&params);
 	for(i=j=0; j<len; i++)
-		if((e = arraylist_get(&get_param, i)))
+		if((e = arraylist_get(&params, i)))
 			arraylist_add(list, ((struct param*)e)->key), j++;
 	return arraylist_size(list);
 }/* end: kgi_get_param_keys */
