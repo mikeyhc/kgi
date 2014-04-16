@@ -1,8 +1,8 @@
-CC 	:= gcc
+CC 	?= gcc
 AR	:= ar -cvq
 MKDIR	:= mkdir -p
 RM	:= rm -rf
-QUIET	:= @
+QUIET	?= @
 
 SRCDIR	:= src
 INCDIR	:= include
@@ -14,12 +14,12 @@ KSTRSRC := $(KSTRDIR)/src
 KSTRINC := $(KSTRDIR)/include
 VPATH	:= $(SRCDIR) $(INCDIR) $(KSTRSRC)
 
-SOFLAGS		:= -shared
-SHAREDFLAGS	:= -fPIC
+SOFLAGS		?= -shared
+SHAREDFLAGS	?= -fPIC
 KGILIB		:= -L$(LIBDIR) -lkgi -Wl,-rpath=$(PWD)/$(LIBDIR)
 
-CPPFLAGS	:= -I$(INCDIR) -I$(KSTRDIR)
-CFLAGS		:= -Wall -Wextra -pedantic
+CPPFLAGS	?= -I$(INCDIR) -I$(KSTRDIR)
+CFLAGS		?= -Wall -Wextra -pedantic
 
 TEST.c		:= $(shell find $(TSTDIR) -name '*.c')
 TEST.cgi 	:= $(TEST.c:%.c=%.cgi)

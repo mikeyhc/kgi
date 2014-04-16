@@ -1,20 +1,25 @@
+#include <arraylist.h>
 #include <assert.h>
+#include <kgi/html.h>
+#include <kstring.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <arraylist.h>
-#include <kgi/html.h>
 
 #define ATTR_MAX_LEN	512
 
+/* TODO: autogenerate these 2 arrays */
 const char *tags[] =
-	{ "a"
+	{ "html"
+	, "a"
 	, "input"
 	, "select"
 	, "div"
 	};
+
 const unsigned length[] = 
-	{ 1
+	{ 4
+	, 1
 	, 5
 	, 6
 	, 3
@@ -131,5 +136,105 @@ unsigned kgi_html_size(struct kgi_html *html)
  */
 void kgi_html_render(struct kgi_html *html, char *str)
 {
-
+	
 }/* end: kgi_html_render */
+
+/* kgi_html_set_text
+ * sets the content of the html tag to the given text
+ *
+ * param html:  the html to update
+ * param str: the content to add
+ * return: true if content set else false
+ *         failure indicates 
+ */
+uint8_t kgi_html_set_text(struct kgi_html *html, const char *str)
+{
+	assert(html && html->_content_init != CONTENT_ARRAY && str);
+
+	return 0;
+}/* end: kgi_html_set_text */
+
+/* kgi_html_clear_text
+ * sets the content to nothing and frees any used memroy
+ *
+ * param html: the html to clear the content of
+ */
+void kgi_html_clear_text(struct kgi_html *html)
+{
+}/* end: kgi_html_clear_text */
+
+/* kgi_html_set_child
+ * sets the child of HTML to CHILD
+ *
+ * param html: the html to update
+ * param child: the child element
+ * return: true if set otherwise false
+ *         return is derived from kgi_html_add_child
+ */
+uint8_t kgi_html_set_child(struct kgi_html *html, struct kgi_html *child)
+{
+	return 0;
+}/* end: kgi_html_set_child */
+
+/* kgi_html_add_child
+ * adds a child element to HTML
+ *
+ * param html: the html to update
+ * param child: the child element
+ * return: true if added else false
+ *         failure indicates unable to add to or initialise arraylist
+ */
+uint8_t kgi_html_add_child(struct kgi_html *html, struct kgi_html *child)
+{
+	return 0;
+}/* end: kgi_html_add_child */
+
+/* kgi_html_clear_children
+ * clears all the children elements from the html
+ *
+ * param html: the html to clear
+ */
+void kgi_html_clear_children(struct kgi_html *html)
+{
+
+}/* end: kgi_html_clear_children */
+
+/* kgi_html_set_attr
+ * sets the attributes of the html to the given values
+ *
+ * param html: the html to update
+ * param key: the key of the attribute
+ * param value: the value of the attribute
+ * return: true if the attribute is set else false
+ *         return is derived from kgi_html_add_attr
+ */
+uint8_t kgi_html_set_attr(struct kgi_html *html, const char *key,
+		const char *value)
+{
+	return 0;
+}/* end: kgi_html_set_attr */
+
+/* kgi_html_add_attr 
+ * adds the given attribute to the html
+ *
+ * param html: the html to update
+ * param key: the key of the attribute
+ * param value: the value of the attribute
+ * return: true if attribute is added else false
+ *         failure indicates unable to add to or intialise arraylist
+ */
+uint8_t kgi_html_add_attr(struct kgi_html *html, const char *key,
+		const char *value)
+{
+	return 0;
+}/* end: kgi_html_add_attr */
+
+/* kgi_html_clear_attrs
+ * clears all the attributes of the html
+ *
+ * param html: the html to clear
+ */
+void kgi_html_clear_attrs(struct kgi_html *html)
+{
+	
+}/* end: kgi_html_clear_attr */
