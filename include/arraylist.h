@@ -14,6 +14,7 @@ struct arraylist {
 uint8_t arraylist_init(struct arraylist*);
 void arraylist_destroy(struct arraylist*);
 void arraylist_destroy_free(struct arraylist*);
+void arraylist_destroy_freewith(struct arraylist*,void(*)(void*));
 uint8_t arraylist_add(struct arraylist*,void*);
 uint8_t arraylist_set(struct arraylist*,unsigned long,void*);
 void *arraylist_get(struct arraylist*,unsigned long);

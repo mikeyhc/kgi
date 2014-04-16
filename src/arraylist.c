@@ -47,22 +47,36 @@ void arraylist_destroy(struct arraylist *list)
 }/* end: arraylist_destroy */
 
 /* arraylist_destroy_free
- * frees all elements in the list then the list itself
- * NB: does not zero list elements
+ * calls arraylist_destroy_freewith with free
  *
  * param list: the list to destroy
  */
 void arraylist_destroy_free(struct arraylist *list)
 {
-	unsigned i;
-
-	assert(list && list->list);
-	
-	for(i=0; i<list->_pos; i++)
-		if(list->list[i] != NULL)
-			free(list->list[i]);
-	arraylist_destroy(list);
+	arraylist_destroy_freewith(list,free);
 }/* end: arraylist_destroy_free */
+
+
+/* arraylist_destroy_freewith
+ * calls the given method on all non-NULL elements in the list then sets
+ * them to NULL then calls destroy on the list
+ *
+ * param list: thest list to free
+ * param func: the function to call
+ */
+void arraylist_destroy_freewith(struct arraylist *list, void (*func)(void*))
+{
+	unsigned long i;
+
+	assert(list && list->list && func);
+
+	for(i=0; i<list->_pos; i++)
+		if(list->list[i] != NULL){
+			func(list->list[i]);
+			list->list[i] = NULL;
+		}
+	arraylist_destroy(list);
+}/* end: arraylist_destroy_freewith */
 
 /* arraylist_add
  * attempts to add ELE to LIST
