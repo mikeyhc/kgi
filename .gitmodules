@@ -1,0 +1,3 @@
+[submodule "kstring"]
+	path = kstring
+	url = git@github.com:mikeyhc/kstring.git
