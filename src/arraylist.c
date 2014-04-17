@@ -64,7 +64,8 @@ void arraylist_destroy_free(struct arraylist *list)
  * param list: thest list to free
  * param func: the function to call
  */
-void arraylist_destroy_freewith(struct arraylist *list, void (*func)(void*))
+void arraylist_destroy_freewith(struct arraylist *list, 
+		void (*func)(void*))
 {
 	unsigned long i;
 

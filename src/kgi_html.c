@@ -5,11 +5,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 #define ATTR_MAX_LEN	512
 
-/* TODO: autogenerate these 2 arrays */
-const char *tags[] =
+#define ALL_TAGS (CAN_TEXT|CAN_CHILD)
+
+#define GET_TAG(x) tags[x & ~ALL_TAGS]
+#define GET_TAG_LENGTH(x) tag_length[x & ~ALL_TAGS]
+#define GEN_LENGTH(x,y) \
+	if y == 1sizeof(x[y]) -1,
+
+
+/* could automate this but when the tables get larger the overhead will
+ * become noticable */
+static const char *tags[] = 
 	{ "html"
 	, "a"
 	, "input"
@@ -17,12 +25,12 @@ const char *tags[] =
 	, "div"
 	};
 
-const unsigned length[] = 
-	{ 4
-	, 1
-	, 5
-	, 6
-	, 3
+static const unsigned tag_length[] = 
+	{ sizeof(tags[0]) - 1
+	, sizeof(tags[1]) - 1
+	, sizeof(tags[2]) - 1
+	, sizeof(tags[3]) - 1
+	, sizeof(tags[4]) - 1
 	};
 /* kgi_html_init
  * initializes a kgi_html struct
@@ -36,7 +44,7 @@ void kgi_html_init(struct kgi_html *html, unsigned char t)
 
 	html->type = t;
 	arraylist_init(&html->hattr);
-	if(t & CAN_CHILD)
+	if(t & (CAN_CHILD | CAN_TEXT))
 		html->_content_init = CONTENT_UNINIT;
 	else
 		html->_content_init = NO_CONTENT;
@@ -67,6 +75,24 @@ void kgi_html_destroy(struct kgi_html *html)
 	}
 	html->_content_init = CONTENT_UNINIT;
 }/* end: kgi_html_destroy */
+
+/* kgi_html_new
+ * allocates and returns a new html of the given type
+ *
+ * param type: the type of the new html
+ * return: the new html or NULL if one could not be created
+ *         failure indicates insufficient memory
+ */
+struct kgi_html *kgi_html_new(html_type type)
+{
+	struct kgi_html *html;
+
+	html = malloc(sizeof(*html));
+	if(!html)
+		return NULL;
+	kgi_html_init(html, type);
+	return html;
+}/* end: kgi_html_new */
 
 /* count_attrs
  * counts the length of all of the attrs (includes leading space)
@@ -103,8 +129,8 @@ unsigned kgi_html_size(struct kgi_html *html)
 	unsigned i, j, l;
 	void *e;
 
-	count = length[html->type & ~CAN_CHILD] + 1; /* < */
-	count += (html->type & CAN_CHILD ? count : 0) + 3;
+	count = GET_TAG_LENGTH(html->type) + 1; /* < */
+	count += (html->type & ALL_TAGS ? count : 0) + 3;
 	count += count_attrs(&html->hattr);
 	if(html->_content_init == CONTENT_ARRAY){
 		l = arraylist_size(&html->content.children);
@@ -144,7 +170,9 @@ void kgi_html_render(struct kgi_html *html, char *str)
  */
 uint8_t kgi_html_set_text(struct kgi_html *html, const char *str)
 {
-	assert(html && html->_content_init != CONTENT_ARRAY && str);
+	assert(html && (html->_content_init == CONTENT_UNINIT ||
+			html->_content_init == CONTENT_TEXT) &&
+			(html->type & CAN_TEXT) && str);
 
 	if(html->_content_init == CONTENT_TEXT)
 		kgi_html_clear_text(html);
@@ -152,7 +180,7 @@ uint8_t kgi_html_set_text(struct kgi_html *html, const char *str)
 	if(!html->content.text)
 		return 0;
 	html->_content_init = CONTENT_TEXT;
-	return 0;
+	return 1;
 }/* end: kgi_html_set_text */
 
 /* kgi_html_clear_text
@@ -162,6 +190,12 @@ uint8_t kgi_html_set_text(struct kgi_html *html, const char *str)
  */
 void kgi_html_clear_text(struct kgi_html *html)
 {
+	assert(html && (html->_content_init == CONTENT_UNINIT ||
+			html->_content_init == CONTENT_TEXT));
+
+	kstring_destroy(html->content.text);
+	html->content.text = NULL;
+	html->_content_init = CONTENT_UNINIT;
 }/* end: kgi_html_clear_text */
 
 /* kgi_html_set_child
@@ -174,7 +208,13 @@ void kgi_html_clear_text(struct kgi_html *html)
  */
 uint8_t kgi_html_set_child(struct kgi_html *html, struct kgi_html *child)
 {
-	return 0;
+	assert(html && (html->_content_init == CONTENT_UNINIT ||
+			html->_content_init == CONTENT_ARRAY) && 
+			(html->type & CAN_CHILD) && child);
+	
+	if(html->_content_init == CONTENT_ARRAY)
+		kgi_html_clear_children(html);
+	return kgi_html_add_child(html, child);
 }/* end: kgi_html_set_child */
 
 /* kgi_html_add_child
@@ -187,7 +227,17 @@ uint8_t kgi_html_set_child(struct kgi_html *html, struct kgi_html *child)
  */
 uint8_t kgi_html_add_child(struct kgi_html *html, struct kgi_html *child)
 {
-	return 0;
+	assert(html && (html->_content_init == CONTENT_UNINIT || 
+			html->_content_init == CONTENT_ARRAY) && 
+			(html->type & CAN_CHILD) && child);
+
+	if(html->_content_init == CONTENT_UNINIT)
+		if(!arraylist_init(&html->content.children))
+			return 0;
+	if(!arraylist_add(&html->content.children, child))
+		return 0;
+	html->_content_init = CONTENT_ARRAY;
+	return 1;
 }/* end: kgi_html_add_child */
 
 /* kgi_html_clear_children
@@ -197,7 +247,11 @@ uint8_t kgi_html_add_child(struct kgi_html *html, struct kgi_html *child)
  */
 void kgi_html_clear_children(struct kgi_html *html)
 {
+	assert(html && html->_content_init == CONTENT_ARRAY);
 
+	arraylist_destroy(&html->content.children);
+	html->content.children;
+	html->_content_init = CONTENT_UNINIT;
 }/* end: kgi_html_clear_children */
 
 /* kgi_html_set_attr
@@ -212,8 +266,26 @@ void kgi_html_clear_children(struct kgi_html *html)
 uint8_t kgi_html_set_attr(struct kgi_html *html, const char *key,
 		const char *value)
 {
-	return 0;
+	assert(html && key && value);
+
+	if(arraylist_size(&html->hattr))
+		kgi_html_clear_attrs(html);
+	return kgi_html_add_attr(html, key, value);
 }/* end: kgi_html_set_attr */
+
+/* free_attr
+ * frees the given attribute
+ *
+ * param attr: the attribute to free
+ */
+static void free_attr(void *attr)
+{
+	assert(attr);
+
+	kstring_destroy(((struct kgi_html_attr*)attr)->key);
+	kstring_destroy(((struct kgi_html_attr*)attr)->value);
+	free(attr);
+}/* end: free_attr */
 
 /* kgi_html_add_attr 
  * adds the given attribute to the html
@@ -227,7 +299,28 @@ uint8_t kgi_html_set_attr(struct kgi_html *html, const char *key,
 uint8_t kgi_html_add_attr(struct kgi_html *html, const char *key,
 		const char *value)
 {
-	return 0;
+	struct kgi_html_attr *attr;
+
+	assert(html && key && value);
+
+	attr = malloc(sizeof(*attr));
+	if(!attr)
+		return 0;
+	attr->key = kstring_new(key);
+	attr->value = kstring_new(value);
+	
+	if(!attr->key || !attr->value){
+		if(attr->key) kstring_destroy(attr->key);
+		if(attr->value) kstring_destroy(attr->value);
+		free(attr);
+		return 0;
+	}
+
+	if(!arraylist_add(&html->hattr, attr)){
+		free_attr(attr);
+		return 0;
+	}
+	return 1;
 }/* end: kgi_html_add_attr */
 
 /* kgi_html_clear_attrs
@@ -237,5 +330,8 @@ uint8_t kgi_html_add_attr(struct kgi_html *html, const char *key,
  */
 void kgi_html_clear_attrs(struct kgi_html *html)
 {
-	
+	assert(html);
+
+	arraylist_destroy_freewith(&html->hattr, free_attr);
+	arraylist_init(&html->hattr);
 }/* end: kgi_html_clear_attr */

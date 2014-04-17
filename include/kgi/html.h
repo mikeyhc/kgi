@@ -11,19 +11,22 @@
 #define CONTENT_ARRAY	 1
 #define CONTENT_TEXT	 2
 
+#define CAN_TEXT        0x40
 #define CAN_CHILD	0x80
 
-/* html elements, must be less than 0x80 */
-/* any changes here must update kgi_html.c: tags/length array */
-#define ANCHOR		CAN_CHILD | 0x00
-#define INPUT			    0x01
-#define SELECT	        CAN_CHILD | 0x02
-#define DIV		CAN_CHILD | 0x03
+/* html elements, must be less than 0x40 */
+/* to render these you must update kgi_html.c */
+#define HTML            CAN_CHILD | CAN_TEXT | 0x00
+#define BODY            CAN_CHILD | CAN_TEXT | 0x01
+#define ANCHOR		CAN_CHILD | CAN_TEXT | 0x02
+#define INPUT			               0x03
+#define SELECT	        CAN_CHILD |            0x04
+#define DIV		CAN_CHILD | CAN_TEXT | 0x05
 
 typedef uint8_t html_type;
 
 struct kgi_html_attr {
-	char *key, *value;	
+	const char *key, *value;	
 };
 
 struct kgi_html {
