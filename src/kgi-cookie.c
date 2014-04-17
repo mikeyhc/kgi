@@ -91,7 +91,9 @@ const char *kgi_get_cookie(const char *name)
 				return NULL;
 			return r;
 		}
-		read_till(&cookie, ';');
+		read_till(&tmp, ';');
+		while(*tmp == ' ')
+			tmp++;
 	}
 	return NULL;
 }/* end: kgi_get_cookie */
