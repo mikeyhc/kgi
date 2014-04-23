@@ -11,27 +11,20 @@
 
 #define GET_TAG(x) tags[x & ~ALL_TAGS]
 #define GET_TAG_LENGTH(x) tag_length[x & ~ALL_TAGS]
-#define GEN_LENGTH(x,y) \
-	if y == 1sizeof(x[y]) -1,
 
 
 /* could automate this but when the tables get larger the overhead will
  * become noticable */
-static const char *tags[] = 
-	{ "html"
-	, "a"
-	, "input"
-	, "select"
-	, "div"
+static const char *tags[] = {
+	"html",		"body",		"a",		"input",
+	"select",	"div",		"h1"
 	};
 
-static const unsigned tag_length[] = 
-	{ sizeof(tags[0]) - 1
-	, sizeof(tags[1]) - 1
-	, sizeof(tags[2]) - 1
-	, sizeof(tags[3]) - 1
-	, sizeof(tags[4]) - 1
+static const uint8_t tag_length[] = {
+	4,	4,	1,	5,
+	6,	3,	2,
 	};
+
 /* kgi_html_init
  * initializes a kgi_html struct
  *
@@ -57,9 +50,6 @@ void kgi_html_init(struct kgi_html *html, unsigned char t)
  */
 void kgi_html_destroy(struct kgi_html *html)
 {
-	unsigned i, j, l;
-	struct kgi_html *e;
-
 	assert(html);
 
 	html->type = 0;
@@ -105,12 +95,14 @@ static unsigned count_attrs(struct arraylist *attrs)
 	unsigned i, j, l, count;
 	struct kgi_html_attr *a;
 
+	assert(attrs);
+
 	count = 0;
 	l = arraylist_size(attrs);
 	for(i=j=0; j<l; i++)
 		if((a = (struct kgi_html_attr*)arraylist_get(attrs, i))){
-			/* 4 = "'' =" */
-			count += kstrlen(a->key) + kstrlen(a->value) + 4;
+			/* 2 = " =" */
+			count += kstrlen(a->key) + kstrlen(a->value) + 2;
 			j++;
 		}
 	return count;
@@ -129,12 +121,13 @@ unsigned kgi_html_size(struct kgi_html *html)
 	unsigned i, j, l;
 	void *e;
 
+	assert(html);
+
 	count = GET_TAG_LENGTH(html->type) + 1; /* < */
 	count += (html->type & ALL_TAGS ? count : 0) + 3;
 	count += count_attrs(&html->hattr);
 	if(html->_content_init == CONTENT_ARRAY){
 		l = arraylist_size(&html->content.children);
-		fprintf(stderr, "found children: %d\n", l);
 		for(i=j=0; j<l; i++)
 			if((e = arraylist_get(&html->content.children, 
 					i))){
@@ -145,9 +138,72 @@ unsigned kgi_html_size(struct kgi_html *html)
 	}else if(html->_content_init == CONTENT_TEXT)
 		count += kstrlen(html->content.text);
 
-	fprintf(stderr, "count: %d\n", count);
 	return count;
 }/* end: kgi_html_size */
+
+/* attr_render
+ * renders the list of attributes
+ *
+ * param attrs: the list of attributes
+ * param str: the string to render them to
+ * return: a pointer to after the rendered tags
+ */
+static char *attr_render(struct arraylist *attrs, char *str)
+{
+	unsigned i, j, len;
+	void *e;
+	struct kgi_html_attr *a;
+
+	len = arraylist_size(attrs);
+	for(i=j=0; j < len; i++)
+		if((e = arraylist_get(attrs, i))){
+			a = (struct kgi_html_attr*)e;
+			sprintf(str, " %s=%s", a->key, a->value);
+			str += kstrlen(a->key) + kstrlen(a->value) + 2;
+			j++;
+		}
+	return str;
+}/* end: attr_render */
+
+/* html_render
+ * actually does the html render
+ *
+ * param html: the html to render
+ * param str: the string to write to, assumes correct size
+ * return: a pointer to after the rendered html
+ */
+static char *html_render(struct kgi_html *html, char *str)
+{
+	unsigned i, j, len;
+	void *e;
+
+	assert(html && str);
+
+	sprintf(str, "<%s", GET_TAG(html->type));
+	str = attr_render(&html->hattr, str + 1 + 
+			GET_TAG_LENGTH(html->type));
+	if(html->type & ALL_TAGS){
+		sprintf(str, ">"); 
+		str++;
+	}else{
+		sprintf(str, " />");
+		return str + 3;
+	}
+
+	if(html->_content_init == CONTENT_ARRAY){
+		len = arraylist_size(&html->content.children);
+		for(i=j=0; j < len; i++)
+			if((e = arraylist_get(&html->content.children, i)))
+				str = html_render((struct kgi_html*)e, 
+						str), j++;
+	}else if(html->_content_init == CONTENT_TEXT){
+		sprintf(str, html->content.text);
+		str += kstrlen(html->content.text);
+	}
+
+	sprintf(str, "</%s>", GET_TAG(html->type));
+	return str + GET_TAG_LENGTH(html->type) + 3;
+}/* end: html_render */
 
 /* kgi_html_render
  * writes the html to the given buffer
@@ -157,7 +213,15 @@ unsigned kgi_html_size(struct kgi_html *html)
  */
 void kgi_html_render(struct kgi_html *html, char *str)
 {
-	
+	char c, *r;
+
+	assert(html && str);
+
+	r = html_render(html, str);
+	*r = '\0';
+	c = *(r-1);
+
+	printf("final chars: %02X%02X\n", c,*r);
 }/* end: kgi_html_render */
 
 /* kgi_html_set_text
@@ -250,7 +314,6 @@ void kgi_html_clear_children(struct kgi_html *html)
 	assert(html && html->_content_init == CONTENT_ARRAY);
 
 	arraylist_destroy(&html->content.children);
-	html->content.children;
 	html->_content_init = CONTENT_UNINIT;
 }/* end: kgi_html_clear_children */
 

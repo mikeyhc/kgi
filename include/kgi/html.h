@@ -22,6 +22,7 @@
 #define INPUT			               0x03
 #define SELECT	        CAN_CHILD |            0x04
 #define DIV		CAN_CHILD | CAN_TEXT | 0x05
+#define H1		            CAN_TEXT | 0x06
 
 typedef uint8_t html_type;
 
@@ -36,7 +37,7 @@ struct kgi_html {
 	} content;
 	struct arraylist hattr;
 	html_type type;
-	unsigned char _content_init;
+	uint8_t _content_init;
 };
 
 void kgi_html_init(struct kgi_html*,html_type);

@@ -32,11 +32,14 @@ int kgi_add_data(struct kgi *kgi, const char *data)
 {
 	char *t;
 	int r;
+	size_t len;
 
 	assert(kgi != NULL && data != NULL);
 
-	t = malloc(strlen(data) + 1);
+	len = strlen(data);
+	t = malloc(len + 1);
 	strcpy(t, data);
+	t[len] = '\0';
 	r = arraylist_add(&kgi->data, t);
 	if(!r)
 		free(t);

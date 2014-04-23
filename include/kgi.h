@@ -7,7 +7,9 @@
 #include <stdlib.h>
 
 
-/* TODO: could use binary trees or hashmaps here for better performance */
+/* TODO: could use binary trees or hashmaps here for better performance
+ *       however at this point in time the increased efficiency pales in
+ *       comparison to the increase in complexity */
 struct kgi {
 	unsigned status;
 	struct arraylist cookies;
