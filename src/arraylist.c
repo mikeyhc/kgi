@@ -122,7 +122,7 @@ uint8_t arraylist_set(struct arraylist *list, unsigned long idx, void *ele)
  * param idx: the index to fetch from
  * return: either the element or NULL if there was none
  */
-void *arraylist_get(struct arraylist *list, unsigned long idx)
+void *arraylist_get(const struct arraylist *list, unsigned long idx)
 {
 	assert(list && list->list);
 	if(idx < list->_array_size)
@@ -138,7 +138,7 @@ void *arraylist_get(struct arraylist *list, unsigned long idx)
  * param cmp: the comparator to use
  * return: the element if found otherwise NULL
  */
-void *arraylist_find(struct arraylist *list, const void *ele, 
+void *arraylist_find(const struct arraylist *list, const void *ele, 
 		int (*cmp)(const void*,const void*)){
 	long i;
 
@@ -154,7 +154,7 @@ void *arraylist_find(struct arraylist *list, const void *ele,
  * param list: the list to return the size of
  * return: the size of the list
  */
-unsigned long arraylist_size(struct arraylist *list)
+unsigned long arraylist_size(const struct arraylist *list)
 {
 	assert(list);
 	return list->size;
@@ -166,7 +166,7 @@ unsigned long arraylist_size(struct arraylist *list)
  * param list: the list to return the index from
  * return: the highest index that might be in use
  */
-size_t arraylist_maxidx(struct arraylist *list)
+size_t arraylist_maxidx(const struct arraylist *list)
 {
 	assert(list);
 	return list->_pos;
@@ -180,7 +180,7 @@ size_t arraylist_maxidx(struct arraylist *list)
  * param cmp: the comparator to use
  * return: the index if found else -1
  */
-long arraylist_indexof(struct arraylist *list, const void *ele, 
+long arraylist_indexof(const struct arraylist *list, const void *ele, 
 		int (*cmp)(const void*,const void*))
 {
 	unsigned i;
@@ -201,7 +201,7 @@ long arraylist_indexof(struct arraylist *list, const void *ele,
  * param cmp: the comparator to use
  * return: true if the element was found else false
  */
-uint8_t arraylist_contains(struct arraylist *list, const void *ele,
+uint8_t arraylist_contains(const struct arraylist *list, const void *ele,
 		int (*cmp)(const void*,const void*))
 {
 	return arraylist_indexof(list, ele, cmp) != -1;

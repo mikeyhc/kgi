@@ -7,45 +7,47 @@
 #define TEST2 "<html><body><a href='http://google.com'>Go to google.com"\
 	      "</a></body></html>"
 
-void failed(struct kgi *k, struct kgi_html *html, char *str)
+void failed(struct kgi_html *html, char *str, char *target)
 {
-	char temp[128];
-
-	kgi_add_data(k, "FAILED (got ");
-	sprintf(temp, "%d", kgi_html_size(html));
-	kgi_add_data(k, temp);
-	kgi_add_data(k, " expected ");
-	sprintf(temp, "%ld", strlen(str));
-	kgi_add_data(k, temp);
-	kgi_add_data(k, ")<br />");
+	sprintf(target, "FAILED (got %d expected %ld)", 
+			kgi_html_size(html), strlen(str));
 }
 
 int main(void)
 {
 	struct kgi k;
 	struct kgi_html *html, *a;
+	struct kgi_html *out_html, *c, *t;
+	char content[124];
 
 	kgi_init(&k);
-	kgi_add_data(&k, "<body>");
+	out_html = kgi_html_new(HTML);
+	kgi_set_html(&k, out_html);
+	t = c = kgi_html_new(BODY);
+	kgi_html_add_child(out_html, c);
 
 	html = kgi_html_new(HTML);
 	kgi_html_add_child(html, kgi_html_new(BODY));
-	kgi_add_data(&k, "testing basic tags: ");
+	c = kgi_html_new(P);
+	kgi_html_add_child(t, c);
+	strcpy(content, "testing basic tags: ");
 	if(kgi_html_size(html) == strlen(TEST1))
-		kgi_add_data(&k, "PASSED<br />");
+		strcat(content, "PASSED");
 	else
-		failed(&k, html, TEST1);
+		failed(html, TEST1, content + strlen(content));
+	kgi_html_set_text(c, content);
 	a = kgi_html_new(ANCHOR);
 	kgi_html_add_attr(a, "href", "'http://google.com'");
 	kgi_html_set_text(a, "Go to google.com");
 	kgi_html_add_child(html, a);
-	kgi_add_data(&k, "testing content and attributes: ");
+	c = kgi_html_new(P);
+	kgi_html_add_child(t, c);
+	strcpy(content, "testing content and attributes: ");
 	if(kgi_html_size(html) == strlen(TEST2))
-		kgi_add_data(&k, "PASSED<br />");
+		strcat(content, "PASSED");
 	else
-		failed(&k, html, TEST2);
-	
-	kgi_add_data(&k, "</body>");
+		failed(html, TEST2, content + strlen(content));
+	kgi_html_set_text(c, content);
 	kgi_output(&k, stdout);
 	kgi_html_destroy(html);
 	kgi_destroy(&k);

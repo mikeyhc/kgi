@@ -5,101 +5,64 @@
 
 #include <arraylist.h>
 #include <kgi.h>
+#include <kgi/html.h>
 
-/* kgi_set_data
+/* kgi_set_html
  * sets the data of the kgi response to the given value
  *
  * param kgi: the kgi to update
- * param data: the data to add
- * return: true if success else false
- *         failure indicates insufficient memory
+ * param html: the html for the kgi
  */
-int kgi_set_data(struct kgi *kgi, const char *data)
+void kgi_set_html(struct kgi *kgi, const struct kgi_html *html)
 {
-	kgi_clear_data(kgi);
-	return kgi_add_data(kgi, data);
-}/* end: kgi_set_data */
+	assert(kgi && html);
 
-/* kgi_add_data
- * appends data to the end of the reply
- *
- * param kgi: the kgi to update
- * param data: the data to add
- * return: true if added else false
- *         failure indicates insufficient memory
- */
-int kgi_add_data(struct kgi *kgi, const char *data)
-{
-	char *t;
-	int r;
-	size_t len;
+	kgi->html = html;
+}/* end: kgi_set_html */
 
-	assert(kgi != NULL && data != NULL);
-
-	len = strlen(data);
-	t = malloc(len + 1);
-	strcpy(t, data);
-	t[len] = '\0';
-	r = arraylist_add(&kgi->data, t);
-	if(!r)
-		free(t);
-	return r;
-}/* end: kgi_add_data */
-
-/* kgi_clear_data
- * removes all the data from the reply
+/* kgi_clear_html
+ * removes the html from the reply
  *
  * param kgi: the kgi to clear
  */
-void kgi_clear_data(struct kgi *kgi)
+void kgi_clear_html(struct kgi *kgi)
 {
-	unsigned i, size;
-	void *ele;
+	assert(kgi);
 
-	assert(kgi!=NULL);
+	kgi->html = NULL;
+}/* end: kgi_clear_html */
 
-	size = kgi->data._pos;
-	for(i=0; i<kgi->data._pos; i++)
-		if((ele = arraylist_removeat(&kgi->data, i)))
-			free(ele);
-}/* end: kgi_clear_data */
-
-/* kgi_size_data
- * returns the size of the data output (useful for content-length)
+/* kgi_size_html
+ * returns the size of the html output (useful for content-length)
  *
  * param kgi: the kgi to check
- * return: the amount of data in the structure
+ * return: the string length of the html
  */
-unsigned kgi_size_data(struct kgi *kgi)
+unsigned kgi_size_html(struct kgi *kgi)
 {
-	int i, j, len;
-	unsigned r;
-	void *e;
+	assert(kgi);
 
-	assert(kgi != NULL);
-
-	len = arraylist_size(&kgi->data);
-	for(i=j=r=0; j<len; i++)
-		if((e = arraylist_get(&kgi->data, i)))
-			r += strlen((char*)e), j++;
-	return r;
-}/* end: kgi_size_data */
+	return kgi_html_size(kgi->html);
+}/* end: kgi_size_html */
 
 /* kgi_output_data
- * prints all the data contained in the kgi to the given stream
+ * prints the html contained in the kgi to the given stream
  *
  * param kgi: the kgi to print from
  * param stream: the stream to print to
  */
-void kgi_output_data(struct kgi *kgi, FILE *stream)
+void kgi_output_html(struct kgi *kgi, FILE *stream)
 {
-	int i, j, len;
-	void *e;
+	char *out;
 
-	assert(kgi != NULL && stream != NULL);
+	assert(kgi && stream);
 
-	len = arraylist_size(&kgi->data);
-	for(i=j=0; j<len; i++)
-		if((e = arraylist_get(&kgi->data, i)))
-			fprintf(stream, (char*)e), j++;
-}/* end: kgi_output_data */
+	if(!kgi->html)
+		return;
+	out = malloc(kgi_size_html(kgi));
+	if(!out)
+		return;
+	kgi_html_render(kgi->html, out);
+	fprintf(stream, out);
+	free(out);
+}/* end: kgi_output_html */

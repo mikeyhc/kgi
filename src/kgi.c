@@ -1,6 +1,7 @@
 #include <arraylist.h>
 #include <assert.h>
 #include <kgi.h>
+#include <kgi/html.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,7 +44,7 @@ void kgi_init(struct kgi *k)
 
 	k->status = 200;
 	arraylist_init(&k->cookies);
-	arraylist_init(&k->data);
+	k->html = NULL;
 	arraylist_init(&k->headers);
 }/* end: kgi_init */
 
@@ -60,8 +61,7 @@ void kgi_destroy(struct kgi *k)
 	k->status = 0;
 	kgi_clear_cookies(k);
 	arraylist_destroy(&k->cookies);
-	kgi_clear_data(k);
-	arraylist_destroy(&k->data);
+	kgi_clear_html(k);
 	kgi_clear_headers(k);
 	arraylist_destroy(&k->headers);
 }/* end: kgi_destroy */
@@ -104,8 +104,8 @@ void kgi_output(struct kgi *kgi, FILE *stream)
 	fprintf(stream, CONTENT_TYPE);
 	kgi_output_headers(kgi, stream);
 	kgi_output_cookies(kgi, stream);
-	fprintf(stream, "Content-Length: %d\n\n", kgi_size_data(kgi));
-	kgi_output_data(kgi, stream);
+	fprintf(stream, "Content-Length: %d\n\n", kgi_size_html(kgi));
+	kgi_output_html(kgi, stream);
 }/* end: kgi_output */
 
 /* read_till

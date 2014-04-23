@@ -2,12 +2,14 @@
 #include <kgi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int main(void)
 {
 	struct kgi k;
+	struct kgi_html *html, *c, *t;
 	struct arraylist a, b;
-	char buf[32];
+	char buf[128];
 
 	arraylist_init(&b);
 	arraylist_add(&b, (void*)1);
@@ -16,34 +18,40 @@ int main(void)
 	arraylist_copy(&a, &b);
 
 	kgi_init(&k);
-	kgi_add_data(&k, "<body><p>arraylist_copy test: ");
+	html = kgi_html_new(HTML);
+	kgi_set_html(&k, html);
+	t = c = kgi_html_new(BODY);
+	kgi_html_add_child(html, t);
+	c = kgi_html_new(P);
+	kgi_html_add_child(t, c);
+	strcpy(buf, "arraylist_copy test: ");
+
 	if(arraylist_get(&a, 0) == arraylist_get(&b, 0)
 			&& arraylist_get(&a, 1) == arraylist_get(&b, 1)
 			&& arraylist_get(&a, 2) == arraylist_get(&b, 2))
-		kgi_add_data(&k, "passed");
+		strcat(buf, "passed");
 	else{
-		kgi_add_data(&k, "failed</p><p>");
-		snprintf(buf, 32, "%ld", (long)arraylist_get(&a, 0));
-		kgi_add_data(&k, buf);
-		kgi_add_data(&k, " = ");
-		snprintf(buf, 32, "%ld", (long)arraylist_get(&b, 0));
-		kgi_add_data(&k, buf);
-		kgi_add_data(&k, "</p><p>");
-		snprintf(buf, 32, "%ld", (long)arraylist_get(&a, 1));
-		kgi_add_data(&k, buf);
-		kgi_add_data(&k, " = ");
-		snprintf(buf, 32, "%ld", (long)arraylist_get(&b, 1));
-		kgi_add_data(&k, buf);
-		kgi_add_data(&k, "</p><p>");
-		snprintf(buf, 32, "%ld", (long)arraylist_get(&a, 2));
-		kgi_add_data(&k, buf);
-		kgi_add_data(&k, " = ");
-		snprintf(buf, 32, "%ld", (long)arraylist_get(&b, 2));
-		kgi_add_data(&k, buf);
-		kgi_add_data(&k, "</p><p>");
+		strcat(buf, "failed");
+		kgi_html_set_text(c, buf);
 
+		c = kgi_html_new(P);
+		kgi_html_add_child(t, c);
+		sprintf(buf, "%ld = %ld", (long)arraylist_get(&a, 0), 
+				(long)arraylist_get(&b, 0));
+		kgi_html_set_text(c, buf);
+
+		c = kgi_html_new(P);
+		kgi_html_add_child(t, c);
+		sprintf(buf, "%ld = %ld", (long)arraylist_get(&a, 1), 
+				(long)arraylist_get(&b, 1));
+		kgi_html_set_text(c, buf);
+
+		c = kgi_html_new(P);
+		kgi_html_add_child(t, c);
+		sprintf(buf, "%ld = %ld", (long)arraylist_get(&a, 2), 
+				(long)arraylist_get(&b, 2));
 	}
-	kgi_add_data(&k, "</p></body>");
+	kgi_html_set_text(c, buf);
 	kgi_output(&k, stdout);
 	kgi_destroy(&k);
 	arraylist_destroy(&a);

@@ -23,6 +23,8 @@
 #define SELECT	        CAN_CHILD |            0x04
 #define DIV		CAN_CHILD | CAN_TEXT | 0x05
 #define H1		            CAN_TEXT | 0x06
+#define HEAD		CAN_CHILD |            0x07
+#define P		            CAN_TEXT | 0x08
 
 typedef uint8_t html_type;
 
@@ -43,8 +45,8 @@ struct kgi_html {
 void kgi_html_init(struct kgi_html*,html_type);
 void kgi_html_destroy(struct kgi_html*);
 struct kgi_html *kgi_html_new(html_type);
-unsigned kgi_html_size(struct kgi_html*);
-void kgi_html_render(struct kgi_html*,char*);
+unsigned kgi_html_size(const struct kgi_html*);
+void kgi_html_render(const struct kgi_html*,char*);
 
 uint8_t kgi_html_set_text(struct kgi_html*,const char*);
 void kgi_html_clear_text(struct kgi_html*);

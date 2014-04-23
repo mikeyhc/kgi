@@ -17,12 +17,14 @@
  * become noticable */
 static const char *tags[] = {
 	"html",		"body",		"a",		"input",
-	"select",	"div",		"h1"
+	"select",	"div",		"h1",		"head",
+	"p"
 	};
 
 static const uint8_t tag_length[] = {
 	4,	4,	1,	5,
-	6,	3,	2,
+	6,	3,	2,	4,
+	1,
 	};
 
 /* kgi_html_init
@@ -90,7 +92,7 @@ struct kgi_html *kgi_html_new(html_type type)
  * param attrs: the list of attrs
  * return: total number of characters required to print the list
  */
-static unsigned count_attrs(struct arraylist *attrs)
+static unsigned count_attrs(const struct arraylist *attrs)
 {
 	unsigned i, j, l, count;
 	struct kgi_html_attr *a;
@@ -115,7 +117,7 @@ static unsigned count_attrs(struct arraylist *attrs)
  * param html: the html to calculate the size of
  * return: the size of the rendered html (in char's)
  */
-unsigned kgi_html_size(struct kgi_html *html)
+unsigned kgi_html_size(const struct kgi_html *html)
 {
 	unsigned count;
 	unsigned i, j, l;
@@ -148,7 +150,7 @@ unsigned kgi_html_size(struct kgi_html *html)
  * param str: the string to render them to
  * return: a pointer to after the rendered tags
  */
-static char *attr_render(struct arraylist *attrs, char *str)
+static char *attr_render(const struct arraylist *attrs, char *str)
 {
 	unsigned i, j, len;
 	void *e;
@@ -172,7 +174,7 @@ static char *attr_render(struct arraylist *attrs, char *str)
  * param str: the string to write to, assumes correct size
  * return: a pointer to after the rendered html
  */
-static char *html_render(struct kgi_html *html, char *str)
+static char *html_render(const struct kgi_html *html, char *str)
 {
 	unsigned i, j, len;
 	void *e;
@@ -211,17 +213,11 @@ static char *html_render(struct kgi_html *html, char *str)
  * param html: the html to render
  * param str: the string to write to, assumes correct size
  */
-void kgi_html_render(struct kgi_html *html, char *str)
+void kgi_html_render(const struct kgi_html *html, char *str)
 {
-	char c, *r;
-
 	assert(html && str);
 
-	r = html_render(html, str);
-	*r = '\0';
-	c = *(r-1);
-
-	printf("final chars: %02X%02X\n", c,*r);
+	*(html_render(html, str)) = '\0';
 }/* end: kgi_html_render */
 
 /* kgi_html_set_text

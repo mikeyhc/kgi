@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "kgi/html.h"
 
 
 /* TODO: could use binary trees or hashmaps here for better performance
@@ -13,7 +14,7 @@
 struct kgi {
 	unsigned status;
 	struct arraylist cookies;
-	struct arraylist data;
+	const struct kgi_html *html;
 	struct arraylist headers;
 };
 
@@ -36,11 +37,10 @@ void kgi_output_cookies(struct kgi*,FILE*);
 #define kgi_get_message() kgi_get_cookie("FormMessage")
 #define kgi_clear_message(kgi) kgi_destroy_cookie(kgi, "FormMessage")
 
-int kgi_set_data(struct kgi*,const char*);
-int kgi_add_data(struct kgi*,const char*);
-void kgi_clear_data(struct kgi*);
-unsigned kgi_size_data(struct kgi*);
-void kgi_output_data(struct kgi*,FILE*);
+void kgi_set_html(struct kgi*,const struct kgi_html*);
+void kgi_clear_html(struct kgi*);
+unsigned kgi_size_html(struct kgi*);
+void kgi_output_html(struct kgi*,FILE*);
 
 int kgi_add_header(struct kgi*,char*,char*);
 void kgi_remove_header(struct kgi*, char*);
