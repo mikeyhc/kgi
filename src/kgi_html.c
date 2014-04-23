@@ -18,13 +18,13 @@
 static const char *tags[] = {
 	"html",		"body",		"a",		"input",
 	"select",	"div",		"h1",		"head",
-	"p"
+	"p",		"img"
 	};
 
 static const uint8_t tag_length[] = {
 	4,	4,	1,	5,
 	6,	3,	2,	4,
-	1,
+	1,	3
 	};
 
 /* kgi_html_init

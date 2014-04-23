@@ -25,6 +25,7 @@
 #define H1		            CAN_TEXT | 0x06
 #define HEAD		CAN_CHILD |            0x07
 #define PARAGRAPH	            CAN_TEXT | 0x08
+#define IMAGE		                       0x09
 
 typedef uint8_t html_type;
 
