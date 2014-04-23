@@ -22,7 +22,7 @@ int main(void)
 	kgi_set_html(&k, html);
 	t = c = kgi_html_new(BODY);
 	kgi_html_add_child(html, t);
-	c = kgi_html_new(P);
+	c = kgi_html_new(PARAGRAPH);
 	kgi_html_add_child(t, c);
 	strcpy(buf, "arraylist_copy test: ");
 
@@ -34,19 +34,19 @@ int main(void)
 		strcat(buf, "failed");
 		kgi_html_set_text(c, buf);
 
-		c = kgi_html_new(P);
+		c = kgi_html_new(PARAGRAPH);
 		kgi_html_add_child(t, c);
 		sprintf(buf, "%ld = %ld", (long)arraylist_get(&a, 0), 
 				(long)arraylist_get(&b, 0));
 		kgi_html_set_text(c, buf);
 
-		c = kgi_html_new(P);
+		c = kgi_html_new(PARAGRAPH);
 		kgi_html_add_child(t, c);
 		sprintf(buf, "%ld = %ld", (long)arraylist_get(&a, 1), 
 				(long)arraylist_get(&b, 1));
 		kgi_html_set_text(c, buf);
 
-		c = kgi_html_new(P);
+		c = kgi_html_new(PARAGRAPH);
 		kgi_html_add_child(t, c);
 		sprintf(buf, "%ld = %ld", (long)arraylist_get(&a, 2), 
 				(long)arraylist_get(&b, 2));

@@ -28,7 +28,7 @@ int main(void)
 
 	html = kgi_html_new(HTML);
 	kgi_html_add_child(html, kgi_html_new(BODY));
-	c = kgi_html_new(P);
+	c = kgi_html_new(PARAGRAPH);
 	kgi_html_add_child(t, c);
 	strcpy(content, "testing basic tags: ");
 	if(kgi_html_size(html) == strlen(TEST1))
@@ -40,7 +40,7 @@ int main(void)
 	kgi_html_add_attr(a, "href", "'http://google.com'");
 	kgi_html_set_text(a, "Go to google.com");
 	kgi_html_add_child(html, a);
-	c = kgi_html_new(P);
+	c = kgi_html_new(PARAGRAPH);
 	kgi_html_add_child(t, c);
 	strcpy(content, "testing content and attributes: ");
 	if(kgi_html_size(html) == strlen(TEST2))

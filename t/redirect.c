@@ -13,7 +13,7 @@ int main(void)
 	kgi_set_html(&k, html);
 	t = c = kgi_html_new(BODY);
 	kgi_html_add_child(html, c);
-	c = kgi_html_new(P);
+	c = kgi_html_new(PARAGRAPH);
 	kgi_html_set_text(c, "Either this test failed or your browser "
 			"doesn't follow redirects");
 	kgi_html_add_child(t, c);

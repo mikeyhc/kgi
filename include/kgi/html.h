@@ -24,7 +24,7 @@
 #define DIV		CAN_CHILD | CAN_TEXT | 0x05
 #define H1		            CAN_TEXT | 0x06
 #define HEAD		CAN_CHILD |            0x07
-#define P		            CAN_TEXT | 0x08
+#define PARAGRAPH	            CAN_TEXT | 0x08
 
 typedef uint8_t html_type;
 
