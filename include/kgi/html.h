@@ -45,6 +45,7 @@ struct kgi_html {
 
 void kgi_html_init(struct kgi_html*,html_type);
 void kgi_html_destroy(struct kgi_html*);
+#define kgi_html_destroy_free(x) kgi_html_destroy(x), free(x)
 struct kgi_html *kgi_html_new(html_type);
 unsigned kgi_html_size(const struct kgi_html*);
 void kgi_html_render(const struct kgi_html*,char*);
