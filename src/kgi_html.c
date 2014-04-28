@@ -15,12 +15,14 @@
 
 /* could automate this but when the tables get larger the overhead will
  * become noticable */
+#define DOCTYPE "<!DOCTYPE html>\n\n"
 static const char *tags[] = {
 	"html",		"body",		"a",		"input",
 	"select",	"div",		"h1",		"head",
 	"p",		"img"
 	};
 
+#define DOCTYPE_LEN sizeof(DOCTYPE)
 static const uint8_t tag_length[] = {
 	4,	4,	1,	5,
 	6,	3,	2,	4,
@@ -110,14 +112,14 @@ static unsigned count_attrs(const struct arraylist *attrs)
 	return count;
 }/* end: count_attrs */
 
-/* kgi_html_size
+/* html_size
  * returns the number of characters that would be printed in
  * its rendered form
  *
  * param html: the html to calculate the size of
  * return: the size of the rendered html (in char's)
  */
-unsigned kgi_html_size(const struct kgi_html *html)
+static unsigned html_size(const struct kgi_html *html)
 {
 	unsigned count;
 	unsigned i, j, l;
@@ -133,7 +135,7 @@ unsigned kgi_html_size(const struct kgi_html *html)
 		for(i=j=0; j<l; i++)
 			if((e = arraylist_get(&html->content.children, 
 					i))){
-				count += kgi_html_size(
+				count += html_size(
 						(struct kgi_html*)e);
 				j++;
 			}
@@ -141,6 +143,18 @@ unsigned kgi_html_size(const struct kgi_html *html)
 		count += kstrlen(html->content.text);
 
 	return count;
+}/* end: html_size */
+
+/* kgi_html_size
+ * returns the number of characters that would be printed in
+ * its rendered form
+ *
+ * param html: the html to calculate the size of
+ * return: the size of the rendered html (in char's)
+ */
+unsigned kgi_html_size(const struct kgi_html *html)
+{
+	return html_size(html) + DOCTYPE_LEN - 1;
 }/* end: kgi_html_size */
 
 /* attr_render
@@ -216,8 +230,9 @@ static char *html_render(const struct kgi_html *html, char *str)
 void kgi_html_render(const struct kgi_html *html, char *str)
 {
 	assert(html && str);
-
-	*(html_render(html, str)) = '\0';
+	
+	strncpy(str, DOCTYPE, DOCTYPE_LEN);
+	*(html_render(html, str + DOCTYPE_LEN - 1)) = '\0';
 }/* end: kgi_html_render */
 
 /* kgi_html_set_text
