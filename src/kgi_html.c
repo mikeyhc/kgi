@@ -19,14 +19,16 @@
 static const char *tags[] = {
 	"html",		"body",		"a",		"input",
 	"select",	"div",		"h1",		"head",
-	"p",		"img"
+	"p",		"img",		"title",	"link",
+	"script"
 	};
 
 #define DOCTYPE_LEN sizeof(DOCTYPE)
 static const uint8_t tag_length[] = {
 	4,	4,	1,	5,
 	6,	3,	2,	4,
-	1,	3
+	1,	3,	5,	4,
+	5
 	};
 
 /* kgi_html_init
